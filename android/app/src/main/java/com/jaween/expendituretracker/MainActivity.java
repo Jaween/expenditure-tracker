@@ -1,4 +1,4 @@
-package com.example.expendituretracker;
+package com.jaween.expendituretracker;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;
