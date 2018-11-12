@@ -1,3 +1,4 @@
+import 'package:expenditure_tracker/create_screen.dart';
 import 'package:expenditure_tracker/firebase_type_repository.dart';
 import 'package:expenditure_tracker/firebase_type_sign_in.dart';
 import 'package:expenditure_tracker/purchase_screen.dart';
@@ -11,7 +12,6 @@ class ExpenditureTrack extends StatefulWidget {
 class ExpenditureTrackState extends State<ExpenditureTrack> {
 
   FirebaseTypeSignIn _signIn;
-  FirebaseTypeRepository _repository;
 
   @override
   void initState() {
@@ -30,9 +30,11 @@ class ExpenditureTrackState extends State<ExpenditureTrack> {
       routes: <String, WidgetBuilder>{
         '/sign-in': (BuildContext context) => SignInScreen(_signIn),
         '/purchase-list': (BuildContext context) {
-          _repository = FirebaseTypeRepository(_signIn.user);
-          return PurchaseScreen(_repository);
+          return PurchaseScreen(FirebaseTypeRepository(_signIn.user));
         },
+        '/create': (BuildContext context) {
+          return CreateScreen(FirebaseTypeRepository(_signIn.user));
+        }
       },
     );
   }

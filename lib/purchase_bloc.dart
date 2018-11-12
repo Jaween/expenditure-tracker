@@ -9,11 +9,8 @@ class PurchaseBloc {
 
   PurchaseBloc(this._repository);
 
-  Future<void> addPurchase(Purchase purchase) async =>
-      _repository.createPurchase(purchase);
-
-  Future<void> updatePurchase(Purchase purchase) async =>
-      _repository.updatePurchase(purchase);
+  Future<void> createOrUpdatePurchase(Purchase purchase) async =>
+      _repository.createOrUpdatePurchase(purchase);
 
   Future<void> deletePurchase(Purchase purchase) async =>
       _repository.deletePurchase(purchase);

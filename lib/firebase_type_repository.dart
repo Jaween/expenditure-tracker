@@ -31,22 +31,18 @@ class FirebaseTypeRepository extends Repository {
   Stream<List<Purchase>> get purchases => _purchases;
 
   @override
+  Future<void> createOrUpdatePurchase(Purchase purchase) async {
+    final document = purchase.id == null
+        ? _firestore.collection(_purchasesUri).document()
+        : _firestore.collection(_purchasesUri).document(purchase.id);
+    await document.setData(purchase.toMap());
+  }
+
+  @override
   Future<void> deletePurchase(Purchase purchase) async {
     print("Want to delete purchase with id ${purchase.id}");
     await _firestore.collection(_purchasesUri)
         .document(purchase.id)
         .delete();
   }
-
-  @override
-  Future<void> updatePurchase(Purchase purchase) async =>
-      await _firestore.collection(_purchasesUri)
-          .document(purchase.id)
-          .setData(purchase.toMap());
-
-  @override
-  Future<void> createPurchase(Purchase purchase) async =>
-      await _firestore.collection(_purchasesUri)
-          .document()
-          .setData(purchase.toMap());
 }

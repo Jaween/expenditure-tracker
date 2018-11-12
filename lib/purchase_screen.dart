@@ -65,21 +65,7 @@ class PurchaseList extends StatelessWidget {
         }
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          final random = Random();
-          final purchase = Purchase(
-              "Transportation",
-              "Metrocard recharge",
-              DateTime.now(),
-              123,
-              432,
-              "Address",
-              "Hub Central",
-              random.nextInt(5000),
-              "AUD");
-          _purchaseBloc.addPurchase(purchase);
-        },
-        tooltip: 'Increment',
+        onPressed: () => Navigator.of(context).pushNamed('/create'),
         child: Icon(Icons.add),
       ),
     );

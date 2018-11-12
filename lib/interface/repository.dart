@@ -7,7 +7,6 @@ abstract class Repository {
 
   Repository(User user);
 
-  Future<void> createPurchase(Purchase purchase);
-  Future<void> updatePurchase(Purchase purchase);
+  Future<void> createOrUpdatePurchase(Purchase purchase);
   Future<void> deletePurchase(Purchase purchase);
 }
