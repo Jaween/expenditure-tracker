@@ -1,8 +1,3 @@
-# expenditure_tracker
+# Expenditure Tracker
 
-A new Flutter project.
-
-## Getting Started
-
-For help getting started with Flutter, view our online
-[documentation](https://flutter.io/).
+Mobile app for keeping track of day-to-day purchases.
