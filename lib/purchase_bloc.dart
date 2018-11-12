@@ -1,21 +1,20 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:expenditure_tracker/Purchase.dart';
-import 'package:rxdart/rxdart.dart';
+import 'package:expenditure_tracker/interface/repository.dart';
+import 'package:expenditure_tracker/purchase.dart';
 
 class PurchaseBloc {
 
-  final _purchases = BehaviorSubject<List<Purchase>>(seedValue: []);
-  Stream<List<Purchase>> get purchases => _purchases;
+  final Repository _repository;
 
-  PurchaseBloc(Firestore firestore) {
-    firestore.collection('users/CjNbwFWffJfUD8354Vm1/purchases').snapshots().listen((data) {
-      print("Have ${data.documents.length} purchases");
-      final List<Purchase> purchasesDownloaded = [];
-      data.documents.forEach((snapshot) {
-        print("Purchase ID is ${snapshot.documentID}");
-        purchasesDownloaded.add(Purchase.fromJson(snapshot.data));
-      });
-      _purchases.add(purchasesDownloaded);
-    });
-  }
+  Stream<List<Purchase>> get purchases => _repository.purchases;
+
+  PurchaseBloc(this._repository);
+
+  Future<void> addPurchase(Purchase purchase) async =>
+      _repository.createPurchase(purchase);
+
+  Future<void> updatePurchase(Purchase purchase) async =>
+      _repository.updatePurchase(purchase);
+
+  Future<void> deletePurchase(Purchase purchase) async =>
+      _repository.deletePurchase(purchase);
 }

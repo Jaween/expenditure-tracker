@@ -1,5 +1,6 @@
 class Purchase {
 
+  String id;
   final String category;
   final String description;
   final DateTime date;
@@ -10,7 +11,8 @@ class Purchase {
   final int amount;
   final String currency;
 
-  Purchase(this.category,
+  Purchase(
+    this.category,
     this.description,
     this.date,
     this.latitude,
@@ -20,7 +22,7 @@ class Purchase {
     this.amount,
     this.currency);
 
-  Purchase.fromJson(Map<String, dynamic> map):
+  Purchase.fromJson(this.id, Map<String, dynamic> map):
       category = map['category'],
       description = map['description'],
       date = map['date'],
@@ -30,4 +32,16 @@ class Purchase {
       locationName = map['locationName'],
       amount = map['amount'],
       currency = map['currency'];
+
+  Map<String, dynamic> toMap() => {
+      'category': category,
+      'description': description,
+      'date': date,
+      'latitude': latitude,
+      'logitude': longitude,
+      'locationtype': locationType,
+      'locationName': locationName,
+      'amount': amount,
+      'currency': currency,
+    };
 }
