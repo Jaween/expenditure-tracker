@@ -2,7 +2,7 @@ class Purchase {
 
   final String category;
   final String description;
-  final int date;
+  final DateTime date;
   final int latitude;
   final int longitude;
   final String locationType;
@@ -23,7 +23,7 @@ class Purchase {
   Purchase.fromJson(Map<String, dynamic> map):
       category = map['category'],
       description = map['description'],
-      date = 123,//map['date'],
+      date = map['date'],
       latitude = map['latitude'],
       longitude = map['longitude'],
       locationType = map['locationType'],
