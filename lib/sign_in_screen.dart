@@ -15,16 +15,25 @@ class SignInScreen extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.only(bottom: 64.0),
+            child: Text(
+              "Expenditure Tracker",
+              style: TextStyle(
+                fontSize: 30
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(left: 32.0, bottom: 32.0, right: 32.0),
             child: TextField(
               decoration: InputDecoration(
                 border: OutlineInputBorder(),
-                hintText: "User name"
+                hintText: "Email"
               )
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: EdgeInsets.only(left: 32.0, bottom: 32.0, right: 32.0),
             child: TextField(
               decoration: InputDecoration(
                 border: OutlineInputBorder(),
@@ -32,19 +41,22 @@ class SignInScreen extends StatelessWidget {
               )
             ),
           ),
-          MaterialButton(
+          RaisedButton(
+            textTheme: ButtonTextTheme.primary,
+            color: Theme.of(context).accentColor,
             onPressed: () {},
             child: Text("Sign in"),
           ),
           Padding(
             padding: const EdgeInsets.only(top: 24.0),
             child: FlatButton(
+              textTheme: ButtonTextTheme.accent,
               onPressed: () async {
                 var user = await _signIn.signInAnonymously();
                 print("User name is ${user.displayName}, id is ${user.userId}, anon? ${user.isAnonymous}");
                 Navigator.of(context).pushNamed('/purchase-list');
               },
-              child: Text("Skip"),
+              child: Text("Continue without signing in"),
             ),
           )
         ],
