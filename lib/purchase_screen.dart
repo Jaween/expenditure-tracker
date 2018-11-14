@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:expenditure_tracker/interface/repository.dart';
 import 'package:expenditure_tracker/purchase.dart';
 import 'package:expenditure_tracker/purchase_bloc.dart';
@@ -46,21 +44,14 @@ class PurchaseList extends StatelessWidget {
         stream: _purchaseBloc.purchases,
         initialData: [],
         builder: (BuildContext context, AsyncSnapshot<List<Purchase>> snapshot) {
+          if (!snapshot.hasData) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
           return ListView.builder(
             itemCount: snapshot.data.length,
-            itemBuilder: (context, position) {
-              final purchase = snapshot.data[position];
-              return Dismissible(
-                key: Key(purchase.id),
-                child: _buildPurchaseItem(context, purchase),
-                background: Container(color: Colors.red),
-                onDismissed: (direction) {
-                  _purchaseBloc.deletePurchase(purchase);
-                  Scaffold.of(context)
-                      .showSnackBar(SnackBar(content: Text("Removed ${purchase.description}")));
-                }
-              );
-            }
+            itemBuilder: (context, pos) => _buildPurchaseItem(context, snapshot.data[pos]),
           );
         }
       ),
@@ -72,39 +63,47 @@ class PurchaseList extends StatelessWidget {
   }
 
   Widget _buildPurchaseItem(BuildContext context, Purchase purchase) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        mainAxisSize: MainAxisSize.max,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Icon(Icons.fastfood),
-          ),
-          Expanded(
-            child: Column(
+    return Dismissible(
+      key: Key(purchase.id),
+      background: Container(color: Colors.red),
+      onDismissed: (direction) {
+        _purchaseBloc.deletePurchase(purchase);
+        Scaffold.of(context)
+          .showSnackBar(SnackBar(content: Text("Removed ${purchase.description}")));
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Icon(Icons.fastfood),
+            ),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(purchase.description),
+                  Text(purchase.locationName),
+                ],
+              ),
+            ),
+            Column(
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                Text(purchase.description),
-                Text(purchase.locationName),
+                Text(purchase.amount.toString()),
+                Text(purchase.currency),
               ],
-            ),
-          ),
-          Column(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Text(purchase.amount.toString()),
-              Text(purchase.currency),
-            ],
-          )
-        ],
+            )
+          ],
+        ),
       ),
     );
   }
-
 }
