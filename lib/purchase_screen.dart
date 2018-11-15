@@ -44,11 +44,8 @@ class PurchaseList extends StatelessWidget {
         stream: _purchaseBloc.purchases,
         initialData: [],
         builder: (BuildContext context, AsyncSnapshot<List<Purchase>> snapshot) {
-          if (!snapshot.hasData) {
-            return Center(
-              child: CircularProgressIndicator(),
-            );
-          }
+          if (!snapshot.hasData) return _buildLoadingWidget();
+          if (snapshot.data.isEmpty) return _buildEmptyListWidget();
           return ListView.builder(
             itemCount: snapshot.data.length,
             itemBuilder: (context, pos) => _buildPurchaseItem(context, snapshot.data[pos]),
@@ -62,6 +59,48 @@ class PurchaseList extends StatelessWidget {
     );
   }
 
+  Widget _buildLoadingWidget() {
+    return Center(
+      child: CircularProgressIndicator(),
+    );
+  }
+
+  Widget _buildEmptyListWidget() {
+    return Center(
+      child: SizedBox(
+        width: 280.0,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Container(
+              width: 200.0,
+              height: 200.0,
+              color: Colors.grey.shade300,
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 48, bottom: 16.0),
+              child: Text(
+                "Nothing spent",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 28.0,
+                ),
+              ),
+            ),
+            Text(
+              "Add a purchase that you made and it will show up here",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                height: 1.2,
+                fontSize: 20.0,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildPurchaseItem(BuildContext context, Purchase purchase) {
     return Dismissible(
       key: Key(purchase.id),
@@ -71,35 +110,43 @@ class PurchaseList extends StatelessWidget {
         Scaffold.of(context)
           .showSnackBar(SnackBar(content: Text("Removed ${purchase.description}")));
       },
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
+      child: SizedBox(
+        height: 64.0,
         child: Row(
           mainAxisSize: MainAxisSize.max,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Padding(
-              padding: const EdgeInsets.all(20.0),
+              padding: const EdgeInsets.only(left: 16.0, right: 32.0),
               child: Icon(Icons.fastfood),
             ),
             Expanded(
               child: Column(
                 mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text(purchase.description),
+                  Text(
+                    purchase.description,
+                    style: TextStyle(
+                      fontSize: 18.0
+                    ),
+                  ),
                   Text(purchase.locationName),
                 ],
               ),
             ),
-            Column(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                Text(purchase.amount.toString()),
-                Text(purchase.currency),
-              ],
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Text(purchase.amount.toString()),
+                  Text(purchase.currency),
+                ],
+              ),
             )
           ],
         ),
