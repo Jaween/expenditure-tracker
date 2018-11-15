@@ -4,22 +4,23 @@ import 'package:expenditure_tracker/purchase_bloc.dart';
 import 'package:flutter/material.dart';
 
 class PurchaseScreen extends StatefulWidget {
+  final Repository repository;
 
-  final Repository _repository;
+  PurchaseScreen(this.repository, {Key key})
+      : assert(repository != null),
+        super(key: key);
 
-  PurchaseScreen(this._repository);
-
-  @override State createState() => PurchaseScreenState();
+  @override
+  State createState() => PurchaseScreenState();
 }
 
 class PurchaseScreenState extends State<PurchaseScreen> {
-
   PurchaseBloc _purchaseBloc;
 
   @override
   void initState() {
     super.initState();
-    _purchaseBloc = PurchaseBloc(widget._repository);
+    _purchaseBloc = PurchaseBloc(widget.repository);
   }
 
   @override
@@ -29,29 +30,29 @@ class PurchaseScreenState extends State<PurchaseScreen> {
 }
 
 class PurchaseList extends StatelessWidget {
-
   final PurchaseBloc _purchaseBloc;
 
   PurchaseList(this._purchaseBloc);
 
   @override
   Widget build(BuildContext context) {
-    return  Scaffold(
+    return Scaffold(
       appBar: AppBar(
         title: Text("Expenditrack"),
       ),
       body: StreamBuilder<List<Purchase>>(
-        stream: _purchaseBloc.purchases,
-        initialData: [],
-        builder: (BuildContext context, AsyncSnapshot<List<Purchase>> snapshot) {
-          if (!snapshot.hasData) return _buildLoadingWidget();
-          if (snapshot.data.isEmpty) return _buildEmptyListWidget();
-          return ListView.builder(
-            itemCount: snapshot.data.length,
-            itemBuilder: (context, pos) => _buildPurchaseItem(context, snapshot.data[pos]),
-          );
-        }
-      ),
+          stream: _purchaseBloc.purchases,
+          initialData: [],
+          builder:
+              (BuildContext context, AsyncSnapshot<List<Purchase>> snapshot) {
+            if (!snapshot.hasData) return _buildLoadingWidget();
+            if (snapshot.data.isEmpty) return _buildEmptyListWidget();
+            return ListView.builder(
+              itemCount: snapshot.data.length,
+              itemBuilder: (context, pos) =>
+                  _buildPurchaseItem(context, snapshot.data[pos]),
+            );
+          }),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.of(context).pushNamed('/create'),
         child: Icon(Icons.add),
@@ -107,8 +108,8 @@ class PurchaseList extends StatelessWidget {
       background: Container(color: Colors.red),
       onDismissed: (direction) {
         _purchaseBloc.deletePurchase(purchase);
-        Scaffold.of(context)
-          .showSnackBar(SnackBar(content: Text("Removed ${purchase.description}")));
+        Scaffold.of(context).showSnackBar(
+            SnackBar(content: Text("Removed ${purchase.description}")));
       },
       child: SizedBox(
         height: 64.0,
@@ -128,9 +129,7 @@ class PurchaseList extends StatelessWidget {
                 children: <Widget>[
                   Text(
                     purchase.description,
-                    style: TextStyle(
-                      fontSize: 18.0
-                    ),
+                    style: TextStyle(fontSize: 18.0),
                   ),
                   Text(purchase.locationName),
                 ],
