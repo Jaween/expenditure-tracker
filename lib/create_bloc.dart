@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:expenditure_tracker/interface/location.dart';
 import 'package:intl/intl.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -15,6 +16,8 @@ class CreateBloc {
   int amount = 0;
   String currency = "AUD";
 
+  final Location _location;
+
   final _dateSink = StreamController<DateTime>();
   Sink<DateTime> get dateSink => _dateSink.sink;
 
@@ -22,13 +25,17 @@ class CreateBloc {
   final _formattedDateStream = BehaviorSubject<String>(seedValue: _dateFormat.format(DateTime.now()));
   Stream<String> get formattedDateStream => _formattedDateStream;
 
+  final _currentPlaceStream = BehaviorSubject<Data<String>>();
+  Stream<Data<String>> get currentPlaceStream => _currentPlaceStream;
+
   final _amountSink = StreamController<String>();
   Sink<String> get amountSink => _amountSink.sink;
 
   final _amountStream = BehaviorSubject<Data<int>>();
   Stream<Data<int>> get amountStream => _amountStream;
 
-  CreateBloc() {
+  CreateBloc(this._location) {
+    _requestLocation();
     _dateSink.stream.listen((date) {
       this.date = date;
       _formattedDateStream.add(_dateFormat.format(date));
@@ -44,14 +51,24 @@ class CreateBloc {
     });
   }
 
+  void _requestLocation() {
+    _currentPlaceStream.add(Data(Status.Loading, ""));
+    _location.getCurrentPlaceName().then((value) {
+      _currentPlaceStream.add(Data(value != null ? Status.Ok : Status.Error, value));
+    });
+  }
+
   void dispose() {
     _dateSink.close();
+    _formattedDateStream.close();
+    _currentPlaceStream.close();
     _amountSink.close();
+    _amountStream.close();
   }
 }
 
 enum Status {
-  Ok, Error
+  Ok, Loading, Error
 }
 
 class Data<T> {

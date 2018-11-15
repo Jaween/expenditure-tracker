@@ -1,3 +1,4 @@
+import 'package:expenditure_tracker/interface/location.dart';
 import 'package:expenditure_tracker/purchase.dart';
 import 'package:expenditure_tracker/create_bloc.dart';
 import 'package:expenditure_tracker/interface/repository.dart';
@@ -5,9 +6,11 @@ import 'package:flutter/material.dart';
 
 class CreateScreen extends StatefulWidget {
   final Repository repository;
+  final Location location;
 
   CreateScreen(
-    this.repository, {
+    this.repository,
+    this.location, {
     Key key,
   })  : assert(repository != null),
         super(key: key);
@@ -21,10 +24,23 @@ class CreateScreen extends StatefulWidget {
 class CreateScreenState extends State<CreateScreen> {
   CreateBloc _createBloc;
 
+  TextEditingController _locationTextController;
+
   @override
   void initState() {
     super.initState();
-    _createBloc = CreateBloc();
+
+    _locationTextController = TextEditingController();
+
+    _createBloc = CreateBloc(widget.location);
+    _createBloc.currentPlaceStream.listen((value) {
+      if (value.status == Status.Ok) {
+        _locationTextController.text = value.data;
+      }
+    });
+    _locationTextController.addListener(() {
+      _createBloc.locationName = _locationTextController.text;
+    });
   }
 
   @override
@@ -49,7 +65,7 @@ class CreateScreenState extends State<CreateScreen> {
             _createWithIcon(Icons.category, _createCategoryChips(context)),
             _createWithIcon(Icons.description, _createDescription(context)),
             _createWithIcon(Icons.date_range, _createDate(context)),
-            _createWithIcon(Icons.place, _createWhere(context)),
+            _createWithIcon(Icons.place, _createLocation(context)),
             _createWithIcon(Icons.monetization_on, _createAmount(context)),
           ],
         ),
@@ -120,7 +136,7 @@ class CreateScreenState extends State<CreateScreen> {
               _createBloc.description = value;
             }),
         decoration: InputDecoration(
-            border: OutlineInputBorder(), hintText: "Description"),
+            border: OutlineInputBorder(), labelText: "Description"),
       ),
     );
   }
@@ -131,10 +147,10 @@ class CreateScreenState extends State<CreateScreen> {
       child: InkWell(
         onTap: () async {
           final date = await showDatePicker(
-            context: context,
-            initialDate: _createBloc.date,
-            firstDate: DateTime(2010),
-            lastDate: DateTime.now().add(Duration(days: 365 * 10)));
+              context: context,
+              initialDate: _createBloc.date,
+              firstDate: DateTime(2010),
+              lastDate: DateTime.now().add(Duration(days: 365 * 10)));
           if (date != null) {
             setState(() {
               _createBloc.date = date;
@@ -150,7 +166,8 @@ class CreateScreenState extends State<CreateScreen> {
               Expanded(
                 child: StreamBuilder<String>(
                   stream: _createBloc.formattedDateStream,
-                  builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+                  builder:
+                      (BuildContext context, AsyncSnapshot<String> snapshot) {
                     if (!snapshot.hasData) {
                       return Text("No data");
                     }
@@ -165,15 +182,21 @@ class CreateScreenState extends State<CreateScreen> {
     );
   }
 
-  Widget _createWhere(BuildContext context) {
+  Widget _createLocation(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(right: 16.0),
       child: TextField(
-        onChanged: (value) => setState(() {
-              _createBloc.locationName = value;
-            }),
-        decoration:
-            InputDecoration(border: OutlineInputBorder(), hintText: "Where"),
+        controller: _locationTextController,
+        decoration: InputDecoration(
+          border: OutlineInputBorder(),
+          labelText: "Where",
+          suffixIcon: IconButton(
+            icon: Icon(Icons.map),
+            onPressed: () {
+            },
+          ),
+        ),
+        enabled: _locationTextController.text != null,
       ),
     );
   }
@@ -199,7 +222,7 @@ class CreateScreenState extends State<CreateScreen> {
                     decoration: InputDecoration(
                         border: OutlineInputBorder(),
                         errorText: snapshot.data?.errorMessage,
-                        hintText: "Amount"),
+                        labelText: "How much"),
                   );
                 }),
           ),

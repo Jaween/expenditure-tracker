@@ -1,6 +1,7 @@
 import 'package:expenditure_tracker/create_screen.dart';
 import 'package:expenditure_tracker/firebase_type_repository.dart';
 import 'package:expenditure_tracker/firebase_type_sign_in.dart';
+import 'package:expenditure_tracker/geolocator_type_location.dart';
 import 'package:expenditure_tracker/purchase_screen.dart';
 import 'package:expenditure_tracker/sign_in_screen.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +34,7 @@ class ExpenditureTrackState extends State<ExpenditureTrack> {
           return PurchaseScreen(FirebaseTypeRepository(_signIn.user));
         },
         '/create': (BuildContext context) {
-          return CreateScreen(FirebaseTypeRepository(_signIn.user));
+          return CreateScreen(FirebaseTypeRepository(_signIn.user), GeolocatorTypeLocation());
         }
       },
     );
