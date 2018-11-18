@@ -1,9 +1,10 @@
+import 'package:expenditure_tracker/base_bloc.dart';
 import 'package:expenditure_tracker/interface/repository.dart';
 import 'package:expenditure_tracker/interface/expenditure.dart';
 import 'package:rxdart/rxdart.dart';
 
 /// Control and logic exposing actions and Streams for the expenditure list UI.
-class ExpenditureHistoryBloc {
+class ExpenditureHistoryBloc extends BlocBase {
 
   final Repository _repository;
 

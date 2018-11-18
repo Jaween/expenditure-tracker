@@ -1,49 +1,30 @@
 import 'package:expenditure_tracker/category_icons.dart';
 import 'package:expenditure_tracker/interface/expenditure.dart';
 import 'package:expenditure_tracker/interface/repository.dart';
+import 'package:expenditure_tracker/screens/bloc_provider.dart';
 import 'package:expenditure_tracker/screens/expenditure_history/expenditure_history_bloc.dart';
 import 'package:expenditure_tracker/util.dart';
 import 'package:flutter/material.dart';
 
-class ExpenditureHistoryScreen extends StatefulWidget {
-  final Repository repository;
-
-  ExpenditureHistoryScreen(this.repository, {Key key})
-      : assert(repository != null),
-        super(key: key);
-
-  @override
-  State createState() => ExpenditureHistoryScreenState();
-}
-
-class ExpenditureHistoryScreenState extends State<ExpenditureHistoryScreen> {
-  ExpenditureHistoryBloc _expenditureHistoryBloc;
-
-  @override
-  void initState() {
-    super.initState();
-    _expenditureHistoryBloc = ExpenditureHistoryBloc(widget.repository);
-  }
+class ExpenditureHistoryScreen extends StatelessWidget {
+  ExpenditureHistoryScreen({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return ExpenditureList(_expenditureHistoryBloc);
+    return ExpenditureList();
   }
 }
 
 class ExpenditureList extends StatelessWidget {
-  final ExpenditureHistoryBloc _expenditureBloc;
-
-  ExpenditureList(this._expenditureBloc);
-
   @override
   Widget build(BuildContext context) {
+    final expenditureBloc = BlocProvider.of<ExpenditureHistoryBloc>(context);
     return Scaffold(
       appBar: AppBar(
         title: Text("Expenditrack"),
       ),
       body: StreamBuilder<List<ExpenditureListItem>>(
-          stream: _expenditureBloc.items,
+          stream: expenditureBloc.items,
           initialData: [],
           builder:
               (BuildContext context, AsyncSnapshot<List<ExpenditureListItem>> snapshot) {
@@ -124,11 +105,12 @@ class ExpenditureList extends StatelessWidget {
   }
 
   Widget _buildExpenditureItem(BuildContext context, Expenditure expenditure) {
+    final expenditureBloc = BlocProvider.of<ExpenditureHistoryBloc>(context);
     return Dismissible(
       key: Key(expenditure.id),
       background: Container(color: Colors.red),
       onDismissed: (direction) {
-        _expenditureBloc.deleteExpenditure(expenditure);
+        expenditureBloc.deleteExpenditure(expenditure);
         Scaffold.of(context).showSnackBar(
             SnackBar(content: Text("Removed ${expenditure.description}")));
       },

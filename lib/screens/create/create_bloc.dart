@@ -1,10 +1,11 @@
 import 'dart:async';
 
+import 'package:expenditure_tracker/base_bloc.dart';
 import 'package:expenditure_tracker/interface/location.dart';
 import 'package:intl/intl.dart';
 import 'package:rxdart/rxdart.dart';
 
-class CreateBloc {
+class CreateBloc extends BlocBase {
 
   String category = "Food";
   String description = "";

@@ -1,17 +1,15 @@
 import 'package:expenditure_tracker/category_icons.dart';
 import 'package:expenditure_tracker/interface/expenditure.dart';
-import 'package:expenditure_tracker/interface/location.dart';
 import 'package:expenditure_tracker/interface/repository.dart';
+import 'package:expenditure_tracker/screens/bloc_provider.dart';
 import 'package:expenditure_tracker/screens/create/create_bloc.dart';
 import 'package:flutter/material.dart';
 
 class CreateScreen extends StatefulWidget {
   final Repository repository;
-  final Location location;
 
   CreateScreen(
-    this.repository,
-    this.location, {
+    this.repository, {
     Key key,
   })  : assert(repository != null),
         super(key: key);
@@ -23,8 +21,6 @@ class CreateScreen extends StatefulWidget {
 }
 
 class CreateScreenState extends State<CreateScreen> {
-  CreateBloc _createBloc;
-
   TextEditingController _locationTextController;
   final _formKey = GlobalKey<FormState>();
 
@@ -34,14 +30,14 @@ class CreateScreenState extends State<CreateScreen> {
 
     _locationTextController = TextEditingController();
 
-    _createBloc = CreateBloc(widget.location);
-    _createBloc.currentPlaceStream.listen((value) {
+    final createBloc = BlocProvider.of<CreateBloc>(context);
+    createBloc.currentPlaceStream.listen((value) {
       if (value.status == Status.Ok) {
         _locationTextController.text = value.data;
       }
     });
     _locationTextController.addListener(() {
-      _createBloc.locationName = _locationTextController.text;
+      createBloc.locationName = _locationTextController.text;
     });
   }
 
@@ -119,16 +115,17 @@ class CreateScreenState extends State<CreateScreen> {
   }
 
   Widget _createCategoryChip(String categoryName) {
+    final createBloc = BlocProvider.of<CreateBloc>(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4.0),
       child: ChoiceChip(
         label: Text(categoryName),
-        selected: _createBloc.category == categoryName,
+        selected: createBloc.category == categoryName,
         avatar: CircleAvatar(child: Icon(iconForCategory(categoryName))),
         onSelected: (selected) {
           if (selected) {
             setState(() {
-              _createBloc.category = categoryName;
+              createBloc.category = categoryName;
             });
           }
         },
@@ -137,11 +134,12 @@ class CreateScreenState extends State<CreateScreen> {
   }
 
   Widget _createDescription(BuildContext context) {
+    final createBloc = BlocProvider.of<CreateBloc>(context);
     return Padding(
       padding: const EdgeInsets.only(right: 16.0),
       child: TextField(
         onChanged: (value) => setState(() {
-              _createBloc.description = value;
+              createBloc.description = value;
             }),
         textCapitalization: TextCapitalization.sentences,
         decoration: InputDecoration(
@@ -151,18 +149,19 @@ class CreateScreenState extends State<CreateScreen> {
   }
 
   Widget _createDate(BuildContext context) {
+    final createBloc = BlocProvider.of<CreateBloc>(context);
     return Padding(
       padding: const EdgeInsets.only(right: 16.0),
       child: InkWell(
         onTap: () async {
           final date = await showDatePicker(
               context: context,
-              initialDate: _createBloc.date,
+              initialDate: createBloc.date,
               firstDate: DateTime(2010),
               lastDate: DateTime.now().add(Duration(days: 365 * 10)));
           if (date != null) {
             setState(() {
-              _createBloc.dateSink.add(date);
+              createBloc.dateSink.add(date);
             });
           }
         },
@@ -174,7 +173,7 @@ class CreateScreenState extends State<CreateScreen> {
             children: <Widget>[
               Expanded(
                 child: StreamBuilder<String>(
-                  stream: _createBloc.formattedDateStream,
+                  stream: createBloc.formattedDateStream,
                   builder:
                       (BuildContext context, AsyncSnapshot<String> snapshot) {
                     if (!snapshot.hasData) {
@@ -207,6 +206,7 @@ class CreateScreenState extends State<CreateScreen> {
   }
 
   Widget _createAmount(BuildContext context) {
+    final createBloc = BlocProvider.of<CreateBloc>(context);
     return Padding(
       padding: const EdgeInsets.only(right: 16.0),
       child: Row(
@@ -215,7 +215,7 @@ class CreateScreenState extends State<CreateScreen> {
         children: <Widget>[
           Expanded(
             child: TextFormField(
-              validator: (value) => _createBloc.amountValidator(value),
+              validator: (value) => createBloc.amountValidator(value),
               onSaved: (value) { print("Saved!"); },
               keyboardType:
                 TextInputType.numberWithOptions(decimal: true),
@@ -232,12 +232,13 @@ class CreateScreenState extends State<CreateScreen> {
   }
 
   Widget _createCurrencyDropDown() {
+    final createBloc = BlocProvider.of<CreateBloc>(context);
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
       child: DropdownButton<String>(
-        value: _createBloc.currency,
+        value: createBloc.currency,
         onChanged: (value) => setState(() {
-          _createBloc.currency = value;
+          createBloc.currency = value;
         }),
         items: <String>["AUD", "USD", "LKR"].map((String value) {
           return DropdownMenuItem<String>(
@@ -251,16 +252,17 @@ class CreateScreenState extends State<CreateScreen> {
       return;
     }
 
+    final createBloc = BlocProvider.of<CreateBloc>(context);
     final expenditure = Expenditure(
-        _createBloc.category,
-        _createBloc.description,
-        _createBloc.date,
-        _createBloc.latitude,
-        _createBloc.longitude,
-        _createBloc.locationType,
-        _createBloc.locationName,
-        _createBloc.amount,
-        _createBloc.currency);
+        createBloc.category,
+        createBloc.description,
+        createBloc.date,
+        createBloc.latitude,
+        createBloc.longitude,
+        createBloc.locationType,
+        createBloc.locationName,
+        createBloc.amount,
+        createBloc.currency);
 
     var uploadResult = widget.repository.createOrUpdateExpenditure(expenditure);
     showDialog(
