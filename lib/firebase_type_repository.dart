@@ -20,7 +20,7 @@ class FirebaseTypeRepository extends Repository {
 
     _firestore.collection(_purchasesUri).snapshots().listen((data) {
       print("User ${_user.userId} has ${data.documents.length} purchase(s)");
-      final List<Purchase> purchasesDownloaded = [];
+      final purchasesDownloaded = <Purchase>[];
       data.documents.forEach((snapshot) =>
           purchasesDownloaded.add(Purchase.fromJson(snapshot.documentID, snapshot.data)));
       _purchases.add(purchasesDownloaded);

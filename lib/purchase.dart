@@ -8,7 +8,7 @@ class Purchase {
   final int longitude;
   final String locationType;
   final String locationName;
-  final int amount;
+  final String amount;
   final String currency;
 
   Purchase(

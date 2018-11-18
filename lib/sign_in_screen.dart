@@ -28,7 +28,7 @@ class SignInScreen extends StatelessWidget {
             child: TextField(
               decoration: InputDecoration(
                 border: OutlineInputBorder(),
-                hintText: "Email"
+                hintText: "User name"
               )
             ),
           ),

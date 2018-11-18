@@ -25,7 +25,7 @@ class ExpenditureTrackState extends State<ExpenditureTrack> {
     return MaterialApp(
       title: 'Expenditure Tracker',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        brightness: Brightness.dark,
       ),
       home: SignInScreen(_signIn),
       routes: <String, WidgetBuilder>{

@@ -1,6 +1,8 @@
+import 'package:expenditure_tracker/category_icons.dart';
 import 'package:expenditure_tracker/interface/repository.dart';
 import 'package:expenditure_tracker/purchase.dart';
 import 'package:expenditure_tracker/purchase_bloc.dart';
+import 'package:expenditure_tracker/util.dart';
 import 'package:flutter/material.dart';
 
 class PurchaseScreen extends StatefulWidget {
@@ -40,17 +42,19 @@ class PurchaseList extends StatelessWidget {
       appBar: AppBar(
         title: Text("Expenditrack"),
       ),
-      body: StreamBuilder<List<Purchase>>(
-          stream: _purchaseBloc.purchases,
+      body: StreamBuilder<List<ExpenditureListItem>>(
+          stream: _purchaseBloc.items,
           initialData: [],
           builder:
-              (BuildContext context, AsyncSnapshot<List<Purchase>> snapshot) {
+              (BuildContext context, AsyncSnapshot<List<ExpenditureListItem>> snapshot) {
             if (!snapshot.hasData) return _buildLoadingWidget();
             if (snapshot.data.isEmpty) return _buildEmptyListWidget();
             return ListView.builder(
               itemCount: snapshot.data.length,
               itemBuilder: (context, pos) =>
-                  _buildPurchaseItem(context, snapshot.data[pos]),
+                snapshot.data[pos].date != null
+                  ? _buildDateItem(context, snapshot.data[pos].date)
+                  : _buildPurchaseItem(context, snapshot.data[pos].purchase)
             );
           }),
       floatingActionButton: FloatingActionButton(
@@ -102,6 +106,23 @@ class PurchaseList extends StatelessWidget {
     );
   }
 
+  Widget _buildDateItem(BuildContext context, DateTime date) {
+    return Container(
+      height: 24.0,
+      color: Colors.grey.shade800,
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.only(left: 16.0, right: 32.0),
+            child: Text(formatDDMMYYYY(date)),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPurchaseItem(BuildContext context, Purchase purchase) {
     return Dismissible(
       key: Key(purchase.id),
@@ -119,7 +140,7 @@ class PurchaseList extends StatelessWidget {
           children: <Widget>[
             Padding(
               padding: const EdgeInsets.only(left: 16.0, right: 32.0),
-              child: Icon(Icons.fastfood),
+              child: Icon(iconForCategory(purchase.category)),
             ),
             Expanded(
               child: Column(
@@ -128,7 +149,7 @@ class PurchaseList extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    purchase.description,
+                    purchase.description.isEmpty ? purchase.category : purchase.description,
                     style: TextStyle(fontSize: 18.0),
                   ),
                   Text(purchase.locationName),
@@ -139,10 +160,15 @@ class PurchaseList extends StatelessWidget {
               padding: const EdgeInsets.only(right: 16.0),
               child: Column(
                 mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-                  Text(purchase.amount.toString()),
+                  Text(
+                    purchase.amount.toString(),
+                    style: TextStyle(
+                      fontSize: 18.0
+                    ),
+                  ),
                   Text(purchase.currency),
                 ],
               ),
