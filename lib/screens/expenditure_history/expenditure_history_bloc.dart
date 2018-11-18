@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:expenditure_tracker/base_bloc.dart';
 import 'package:expenditure_tracker/interface/repository.dart';
 import 'package:expenditure_tracker/interface/expenditure.dart';
@@ -5,11 +7,16 @@ import 'package:rxdart/rxdart.dart';
 
 /// Control and logic exposing actions and Streams for the expenditure list UI.
 class ExpenditureHistoryBloc extends BlocBase {
-
   final Repository _repository;
 
   final _items = BehaviorSubject<List<ExpenditureListItem>>();
   Stream<List<ExpenditureListItem>> get items => _items.stream;
+
+  final _updateExpenditureAction = StreamController<Expenditure>();
+  Sink<Expenditure> get updateExpenditureAction => _updateExpenditureAction;
+
+  final _deleteExpenditureAction = StreamController<Expenditure>();
+  Sink<Expenditure> get deleteExpenditureAction => _deleteExpenditureAction;
 
   ExpenditureHistoryBloc(this._repository) {
     _repository.expenditures.listen((expenditures) {
@@ -20,13 +27,13 @@ class ExpenditureHistoryBloc extends BlocBase {
           _generateExpendituresSeparatedByDate(reverseSortedExpenditures);
       _items.add(expendituresSeparatedByDate);
     });
+
+    _updateExpenditureAction.stream.listen(
+        (expenditure) => _repository.createOrUpdateExpenditure(expenditure));
+
+    _deleteExpenditureAction.stream.listen(
+        (expenditure) => _repository.deleteExpenditure(expenditure));
   }
-
-  Future<void> createOrUpdateExpenditure(Expenditure expenditure) async =>
-      _repository.createOrUpdateExpenditure(expenditure);
-
-  Future<void> deleteExpenditure(Expenditure expenditure) async =>
-      _repository.deleteExpenditure(expenditure);
 
   /// Creates a list of expenditures, separated with items holding the date of those expenditures.
   ///
@@ -47,8 +54,11 @@ class ExpenditureHistoryBloc extends BlocBase {
     return items;
   }
 
+  @override
   void dispose() {
     _items.close();
+    _updateExpenditureAction.close();
+    _deleteExpenditureAction.close();
   }
 }
 

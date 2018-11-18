@@ -1,11 +1,11 @@
 import 'package:expenditure_tracker/category_icons.dart';
 import 'package:expenditure_tracker/interface/expenditure.dart';
-import 'package:expenditure_tracker/interface/repository.dart';
 import 'package:expenditure_tracker/screens/bloc_provider.dart';
 import 'package:expenditure_tracker/screens/expenditure_history/expenditure_history_bloc.dart';
 import 'package:expenditure_tracker/util.dart';
 import 'package:flutter/material.dart';
 
+/// Screen which shows a list of past expenditures with associated actions.
 class ExpenditureHistoryScreen extends StatelessWidget {
   ExpenditureHistoryScreen({Key key}) : super(key: key);
 
@@ -26,16 +26,14 @@ class ExpenditureList extends StatelessWidget {
       body: StreamBuilder<List<ExpenditureListItem>>(
           stream: expenditureBloc.items,
           initialData: [],
-          builder:
-              (BuildContext context, AsyncSnapshot<List<ExpenditureListItem>> snapshot) {
+          builder: (BuildContext context, AsyncSnapshot<List<ExpenditureListItem>> snapshot) {
             if (!snapshot.hasData) return _buildLoadingWidget();
             if (snapshot.data.isEmpty) return _buildEmptyListWidget();
             return ListView.builder(
               itemCount: snapshot.data.length,
-              itemBuilder: (context, pos) =>
-                snapshot.data[pos].date != null
+              itemBuilder: (context, pos) => snapshot.data[pos].date != null
                   ? _buildDateItem(context, snapshot.data[pos].date)
-                  : _buildExpenditureItem(context, snapshot.data[pos].expenditure)
+                  : _buildExpenditureItem(context, snapshot.data[pos].expenditure),
             );
           }),
       floatingActionButton: FloatingActionButton(
@@ -110,7 +108,7 @@ class ExpenditureList extends StatelessWidget {
       key: Key(expenditure.id),
       background: Container(color: Colors.red),
       onDismissed: (direction) {
-        expenditureBloc.deleteExpenditure(expenditure);
+        expenditureBloc.deleteExpenditureAction.add(expenditure);
         Scaffold.of(context).showSnackBar(
             SnackBar(content: Text("Removed ${expenditure.description}")));
       },
@@ -131,7 +129,9 @@ class ExpenditureList extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    expenditure.description.isEmpty ? expenditure.category : expenditure.description,
+                    expenditure.description.isEmpty
+                        ? expenditure.category
+                        : expenditure.description,
                     style: TextStyle(fontSize: 18.0),
                   ),
                   Text(expenditure.locationName),
@@ -147,9 +147,7 @@ class ExpenditureList extends StatelessWidget {
                 children: <Widget>[
                   Text(
                     expenditure.amount.toString(),
-                    style: TextStyle(
-                      fontSize: 18.0
-                    ),
+                    style: TextStyle(fontSize: 18.0),
                   ),
                   Text(expenditure.currency),
                 ],
