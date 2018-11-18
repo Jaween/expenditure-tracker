@@ -1,12 +1,12 @@
 import 'package:expenditure_tracker/interface/user.dart';
-import 'package:expenditure_tracker/interface/purchase.dart';
+import 'package:expenditure_tracker/interface/expenditure.dart';
 
 abstract class Repository {
 
-  Stream<List<Purchase>> get purchases;
+  Stream<List<Expenditure>> get expenditures;
 
   Repository(User user);
 
-  Future<void> createOrUpdatePurchase(Purchase purchase);
-  Future<void> deletePurchase(Purchase purchase);
+  Future<void> createOrUpdateExpenditure(Expenditure expenditure);
+  Future<void> deleteExpenditure(Expenditure expenditure);
 }

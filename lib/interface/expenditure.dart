@@ -1,4 +1,4 @@
-class Purchase {
+class Expenditure {
 
   String id;
   final String category;
@@ -11,7 +11,7 @@ class Purchase {
   final String amount;
   final String currency;
 
-  Purchase(
+  Expenditure(
     this.category,
     this.description,
     this.date,
@@ -22,7 +22,7 @@ class Purchase {
     this.amount,
     this.currency);
 
-  Purchase.fromJson(this.id, Map<String, dynamic> map):
+  Expenditure.fromJson(this.id, Map<String, dynamic> map):
       category = map['category'],
       description = map['description'],
       date = map['date'],

@@ -1,48 +1,48 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:expenditure_tracker/interface/expenditure.dart';
 import 'package:expenditure_tracker/interface/repository.dart';
 import 'package:expenditure_tracker/interface/user.dart';
-import 'package:expenditure_tracker/interface/purchase.dart';
 import 'package:rxdart/rxdart.dart';
 
 class FirebaseTypeRepository extends Repository {
 
   String _baseUri;
-  String _purchasesUri;
+  String _expendituresUri;
 
   final User _user;
   final Firestore _firestore = Firestore.instance;
 
-  final _purchases = BehaviorSubject<List<Purchase>>();
+  final _expenditures = BehaviorSubject<List<Expenditure>>();
 
   FirebaseTypeRepository(this._user): super(_user) {
     _baseUri = 'users/${_user.userId}';
-    _purchasesUri = '$_baseUri/purchases';
+    _expendituresUri = '$_baseUri/expenditures';
 
-    _firestore.collection(_purchasesUri).snapshots().listen((data) {
-      print("User ${_user.userId} has ${data.documents.length} purchase(s)");
-      final purchasesDownloaded = <Purchase>[];
+    _firestore.collection(_expendituresUri).snapshots().listen((data) {
+      print("User ${_user.userId} has ${data.documents.length} expenditure(s)");
+      final expendituresDownloaded = <Expenditure>[];
       data.documents.forEach((snapshot) =>
-          purchasesDownloaded.add(Purchase.fromJson(snapshot.documentID, snapshot.data)));
-      _purchases.add(purchasesDownloaded);
+          expendituresDownloaded.add(Expenditure.fromJson(snapshot.documentID, snapshot.data)));
+      _expenditures.add(expendituresDownloaded);
     });
   }
 
   @override
-  Stream<List<Purchase>> get purchases => _purchases;
+  Stream<List<Expenditure>> get expenditures => _expenditures;
 
   @override
-  Future<void> createOrUpdatePurchase(Purchase purchase) async {
-    final document = purchase.id == null
-        ? _firestore.collection(_purchasesUri).document()
-        : _firestore.collection(_purchasesUri).document(purchase.id);
-    await document.setData(purchase.toMap());
+  Future<void> createOrUpdateExpenditure(Expenditure expenditure) async {
+    final document = expenditure.id == null
+        ? _firestore.collection(_expendituresUri).document()
+        : _firestore.collection(_expendituresUri).document(expenditure.id);
+    await document.setData(expenditure.toMap());
   }
 
   @override
-  Future<void> deletePurchase(Purchase purchase) async {
-    print("Want to delete purchase with id ${purchase.id}");
-    await _firestore.collection(_purchasesUri)
-        .document(purchase.id)
+  Future<void> deleteExpenditure(Expenditure expenditure) async {
+    print("Want to delete expenditure with id ${expenditure.id}");
+    await _firestore.collection(_expendituresUri)
+        .document(expenditure.id)
         .delete();
   }
 }

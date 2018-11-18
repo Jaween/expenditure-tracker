@@ -1,6 +1,6 @@
 import 'package:expenditure_tracker/category_icons.dart';
+import 'package:expenditure_tracker/interface/expenditure.dart';
 import 'package:expenditure_tracker/interface/location.dart';
-import 'package:expenditure_tracker/interface/purchase.dart';
 import 'package:expenditure_tracker/interface/repository.dart';
 import 'package:expenditure_tracker/screens/create/create_bloc.dart';
 import 'package:flutter/material.dart';
@@ -251,7 +251,7 @@ class CreateScreenState extends State<CreateScreen> {
       return;
     }
 
-    final purchase = Purchase(
+    final expenditure = Expenditure(
         _createBloc.category,
         _createBloc.description,
         _createBloc.date,
@@ -262,7 +262,7 @@ class CreateScreenState extends State<CreateScreen> {
         _createBloc.amount,
         _createBloc.currency);
 
-    var uploadResult = widget.repository.createOrUpdatePurchase(purchase);
+    var uploadResult = widget.repository.createOrUpdateExpenditure(expenditure);
     showDialog(
         context: outerContext,
         builder: (BuildContext context) {

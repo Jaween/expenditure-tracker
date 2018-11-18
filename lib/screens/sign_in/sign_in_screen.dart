@@ -54,7 +54,7 @@ class SignInScreen extends StatelessWidget {
               onPressed: () async {
                 var user = await _signIn.signInAnonymously();
                 print("User name is ${user.displayName}, id is ${user.userId}, anon? ${user.isAnonymous}");
-                Navigator.of(context).pushNamed('/purchase-list');
+                Navigator.of(context).pushNamed('/expenditure-history');
               },
               child: Text("Continue without signing in"),
             ),

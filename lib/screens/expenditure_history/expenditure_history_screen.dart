@@ -1,40 +1,40 @@
 import 'package:expenditure_tracker/category_icons.dart';
+import 'package:expenditure_tracker/interface/expenditure.dart';
 import 'package:expenditure_tracker/interface/repository.dart';
-import 'package:expenditure_tracker/interface/purchase.dart';
-import 'package:expenditure_tracker/screens/expenditures/purchase_bloc.dart';
+import 'package:expenditure_tracker/screens/expenditure_history/expenditure_history_bloc.dart';
 import 'package:expenditure_tracker/util.dart';
 import 'package:flutter/material.dart';
 
-class PurchaseScreen extends StatefulWidget {
+class ExpenditureHistoryScreen extends StatefulWidget {
   final Repository repository;
 
-  PurchaseScreen(this.repository, {Key key})
+  ExpenditureHistoryScreen(this.repository, {Key key})
       : assert(repository != null),
         super(key: key);
 
   @override
-  State createState() => PurchaseScreenState();
+  State createState() => ExpenditureHistoryScreenState();
 }
 
-class PurchaseScreenState extends State<PurchaseScreen> {
-  PurchaseBloc _purchaseBloc;
+class ExpenditureHistoryScreenState extends State<ExpenditureHistoryScreen> {
+  ExpenditureHistoryBloc _expenditureHistoryBloc;
 
   @override
   void initState() {
     super.initState();
-    _purchaseBloc = PurchaseBloc(widget.repository);
+    _expenditureHistoryBloc = ExpenditureHistoryBloc(widget.repository);
   }
 
   @override
   Widget build(BuildContext context) {
-    return PurchaseList(_purchaseBloc);
+    return ExpenditureList(_expenditureHistoryBloc);
   }
 }
 
-class PurchaseList extends StatelessWidget {
-  final PurchaseBloc _purchaseBloc;
+class ExpenditureList extends StatelessWidget {
+  final ExpenditureHistoryBloc _expenditureBloc;
 
-  PurchaseList(this._purchaseBloc);
+  ExpenditureList(this._expenditureBloc);
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +43,7 @@ class PurchaseList extends StatelessWidget {
         title: Text("Expenditrack"),
       ),
       body: StreamBuilder<List<ExpenditureListItem>>(
-          stream: _purchaseBloc.items,
+          stream: _expenditureBloc.items,
           initialData: [],
           builder:
               (BuildContext context, AsyncSnapshot<List<ExpenditureListItem>> snapshot) {
@@ -54,7 +54,7 @@ class PurchaseList extends StatelessWidget {
               itemBuilder: (context, pos) =>
                 snapshot.data[pos].date != null
                   ? _buildDateItem(context, snapshot.data[pos].date)
-                  : _buildPurchaseItem(context, snapshot.data[pos].purchase)
+                  : _buildExpenditureItem(context, snapshot.data[pos].expenditure)
             );
           }),
       floatingActionButton: FloatingActionButton(
@@ -93,7 +93,7 @@ class PurchaseList extends StatelessWidget {
               ),
             ),
             Text(
-              "Add a purchase that you made and it will show up here",
+              "Add a expenditure that you made and it will show up here",
               textAlign: TextAlign.center,
               style: TextStyle(
                 height: 1.2,
@@ -123,14 +123,14 @@ class PurchaseList extends StatelessWidget {
     );
   }
 
-  Widget _buildPurchaseItem(BuildContext context, Purchase purchase) {
+  Widget _buildExpenditureItem(BuildContext context, Expenditure expenditure) {
     return Dismissible(
-      key: Key(purchase.id),
+      key: Key(expenditure.id),
       background: Container(color: Colors.red),
       onDismissed: (direction) {
-        _purchaseBloc.deletePurchase(purchase);
+        _expenditureBloc.deleteExpenditure(expenditure);
         Scaffold.of(context).showSnackBar(
-            SnackBar(content: Text("Removed ${purchase.description}")));
+            SnackBar(content: Text("Removed ${expenditure.description}")));
       },
       child: SizedBox(
         height: 64.0,
@@ -140,7 +140,7 @@ class PurchaseList extends StatelessWidget {
           children: <Widget>[
             Padding(
               padding: const EdgeInsets.only(left: 16.0, right: 32.0),
-              child: Icon(iconForCategory(purchase.category)),
+              child: Icon(iconForCategory(expenditure.category)),
             ),
             Expanded(
               child: Column(
@@ -149,10 +149,10 @@ class PurchaseList extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    purchase.description.isEmpty ? purchase.category : purchase.description,
+                    expenditure.description.isEmpty ? expenditure.category : expenditure.description,
                     style: TextStyle(fontSize: 18.0),
                   ),
-                  Text(purchase.locationName),
+                  Text(expenditure.locationName),
                 ],
               ),
             ),
@@ -164,12 +164,12 @@ class PurchaseList extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   Text(
-                    purchase.amount.toString(),
+                    expenditure.amount.toString(),
                     style: TextStyle(
                       fontSize: 18.0
                     ),
                   ),
-                  Text(purchase.currency),
+                  Text(expenditure.currency),
                 ],
               ),
             )
