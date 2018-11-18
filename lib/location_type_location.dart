@@ -1,22 +1,23 @@
+import 'dart:async';
+
 import 'package:expenditure_tracker/interface/location.dart';
+import 'package:location/location.dart' as LocationPlugin;
 import 'package:geolocator/geolocator.dart';
 
-class GeolocatorTypeLocation extends Location {
+class LocationTypeLocation extends Location {
+
+  StreamSubscription<Map<String, double>> _subscription;
 
   @override
   Future<GeoCoordinate> getCurrentLocation() async {
-    var geolocator = Geolocator();
-    var status = await geolocator.checkGeolocationPermissionStatus(
-      locationPermission: GeolocationPermission.location);
-
-    if (status == GeolocationStatus.granted) {
-      await geolocator.getPositionStream().first.then((position) {
-        if (position == null) {
+    final locationPlugin = LocationPlugin.Location();
+    if (await locationPlugin.hasPermission()) {
+      locationPlugin.onLocationChanged().first.then((location) {
+        if (location == null) {
           return null;
         }
-        return GeoCoordinate(position.latitude, position.longitude);
+        return GeoCoordinate(location['latitude'], location['longitude']);
       });
-        //desiredAccuracy: LocationAccuracy.high);
     } else {
       print("NO LOCATION PERMISSION");
     }
@@ -25,7 +26,7 @@ class GeolocatorTypeLocation extends Location {
 
   @override
   Future<String> getCurrentPlaceName() async {
-    var geolocator = Geolocator();
+    final geolocator = Geolocator();
     var location = await getCurrentLocation();
     if (location != null) {
       final placemarks = await geolocator.placemarkFromCoordinates(
@@ -43,5 +44,11 @@ class GeolocatorTypeLocation extends Location {
       }
     }
     return null;
+  }
+
+  void dispose() {
+    if (_subscription != null) {
+      _subscription.cancel();
+    }
   }
 }
