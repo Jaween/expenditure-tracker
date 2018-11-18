@@ -25,10 +25,9 @@ class ExpenditureList extends StatelessWidget {
       ),
       body: StreamBuilder<List<ExpenditureListItem>>(
           stream: expenditureBloc.items,
-          initialData: [],
           builder: (BuildContext context, AsyncSnapshot<List<ExpenditureListItem>> snapshot) {
             if (!snapshot.hasData) return _buildLoadingWidget();
-            if (snapshot.data.isEmpty) return _buildEmptyListWidget();
+            if (snapshot.data.isEmpty) return _buildEmptyListWidget(context);
             return ListView.builder(
               itemCount: snapshot.data.length,
               itemBuilder: (context, pos) => snapshot.data[pos].date != null
@@ -49,10 +48,10 @@ class ExpenditureList extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyListWidget() {
+  Widget _buildEmptyListWidget(BuildContext context) {
     return Center(
       child: SizedBox(
-        width: 280.0,
+        width: 200.0,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
@@ -62,22 +61,17 @@ class ExpenditureList extends StatelessWidget {
               color: Colors.grey.shade300,
             ),
             Padding(
-              padding: const EdgeInsets.only(top: 48, bottom: 16.0),
+              padding: const EdgeInsets.only(top: 32, bottom: 32.0),
               child: Text(
                 "Nothing spent",
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 28.0,
-                ),
+                style: Theme.of(context).textTheme.headline,
               ),
             ),
             Text(
-              "Add a expenditure that you made and it will show up here",
+              "Add an expenditure and it will show up here",
               textAlign: TextAlign.center,
-              style: TextStyle(
-                height: 1.2,
-                fontSize: 20.0,
-              ),
+              style: Theme.of(context).textTheme.body1,
             ),
           ],
         ),
@@ -119,7 +113,7 @@ class ExpenditureList extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Padding(
-              padding: const EdgeInsets.only(left: 16.0, right: 32.0),
+              padding: const EdgeInsets.only(left: 16.0, right: 16.0),
               child: Icon(iconForCategory(expenditure.category)),
             ),
             Expanded(
@@ -128,18 +122,28 @@ class ExpenditureList extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text(
-                    expenditure.description.isEmpty
-                        ? expenditure.category
-                        : expenditure.description,
-                    style: TextStyle(fontSize: 18.0),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4.0),
+                    child: Text(
+                      expenditure.description.isEmpty
+                          ? expenditure.category
+                          : expenditure.description,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.body2,
+                    ),
                   ),
-                  Text(expenditure.locationName),
+                  Text(
+                    expenditure.locationName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.caption,
+                  ),
                 ],
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(right: 16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -147,9 +151,12 @@ class ExpenditureList extends StatelessWidget {
                 children: <Widget>[
                   Text(
                     expenditure.amount.toString(),
-                    style: TextStyle(fontSize: 18.0),
+                    style: Theme.of(context).textTheme.body2,
                   ),
-                  Text(expenditure.currency),
+                  Text(
+                    expenditure.currency,
+                    style: Theme.of(context).textTheme.caption,
+                  ),
                 ],
               ),
             )
