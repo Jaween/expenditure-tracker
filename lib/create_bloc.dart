@@ -7,13 +7,13 @@ import 'package:rxdart/rxdart.dart';
 class CreateBloc {
 
   String category = "Food";
-  String description = "Unset";
+  String description = "";
   DateTime date = DateTime.now();
   int latitude = 0;
   int longitude = 0;
-  String locationType = "Unset";
-  String locationName = "Unset";
-  int amount = 0;
+  String locationType = "";
+  String locationName = "";
+  String amount = "";
   String currency = "AUD";
 
   final Location _location;
@@ -28,26 +28,11 @@ class CreateBloc {
   final _currentPlaceStream = BehaviorSubject<Data<String>>();
   Stream<Data<String>> get currentPlaceStream => _currentPlaceStream;
 
-  final _amountSink = StreamController<String>();
-  Sink<String> get amountSink => _amountSink.sink;
-
-  final _amountStream = BehaviorSubject<Data<int>>();
-  Stream<Data<int>> get amountStream => _amountStream;
-
   CreateBloc(this._location) {
     _requestLocation();
     _dateSink.stream.listen((date) {
       this.date = date;
       _formattedDateStream.add(_dateFormat.format(date));
-    });
-
-    _amountSink.stream.listen((amount) {
-      int amountInt = int.tryParse(amount);
-      if (amountInt == null) {
-        _amountStream.add(Data(Status.Error, amountInt, "Enter an amount greater than or equal to 0"));
-      } else {
-        _amountStream.add(Data(Status.Ok, amountInt));
-      }
     });
   }
 
@@ -58,12 +43,20 @@ class CreateBloc {
     });
   }
 
+  String amountValidator(String amount) {
+    double amountDouble = double.tryParse(amount);
+    if (amountDouble == null) {
+      return "Enter a valid amount";
+    }
+    this.amount = amount;
+
+    return null;
+  }
+
   void dispose() {
     _dateSink.close();
     _formattedDateStream.close();
     _currentPlaceStream.close();
-    _amountSink.close();
-    _amountStream.close();
   }
 }
 

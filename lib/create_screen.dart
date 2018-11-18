@@ -1,3 +1,4 @@
+import 'package:expenditure_tracker/category_icons.dart';
 import 'package:expenditure_tracker/interface/location.dart';
 import 'package:expenditure_tracker/purchase.dart';
 import 'package:expenditure_tracker/create_bloc.dart';
@@ -25,6 +26,7 @@ class CreateScreenState extends State<CreateScreen> {
   CreateBloc _createBloc;
 
   TextEditingController _locationTextController;
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -59,15 +61,19 @@ class CreateScreenState extends State<CreateScreen> {
         ],
       ),
       body: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          children: <Widget>[
-            _createWithIcon(Icons.category, _createCategoryChips(context)),
-            _createWithIcon(Icons.description, _createDescription(context)),
-            _createWithIcon(Icons.date_range, _createDate(context)),
-            _createWithIcon(Icons.place, _createLocation(context)),
-            _createWithIcon(Icons.monetization_on, _createAmount(context)),
-          ],
+        child: Form(
+          key: _formKey,
+          autovalidate: true,
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
+            children: <Widget>[
+              _createWithIcon(Icons.category, _createCategoryChips(context)),
+              _createWithIcon(Icons.description, _createDescription(context)),
+              _createWithIcon(Icons.date_range, _createDate(context)),
+              _createWithIcon(Icons.place, _createLocation(context)),
+              _createWithIcon(Icons.monetization_on, _createAmount(context)),
+            ],
+          ),
         ),
       ),
     );
@@ -82,7 +88,7 @@ class CreateScreenState extends State<CreateScreen> {
               const EdgeInsets.only(left: 16.0, right: 32, top: 32, bottom: 8),
           child: Icon(
             data,
-            color: Colors.black.withOpacity(0.38),
+            color: Colors.white.withOpacity(0.70),
           ),
         ),
         Expanded(
@@ -102,25 +108,27 @@ class CreateScreenState extends State<CreateScreen> {
         scrollDirection: Axis.horizontal,
         children: <Widget>[
           _createCategoryChip("Food"),
-          _createCategoryChip("Transport"),
           _createCategoryChip("Drinks"),
+          _createCategoryChip("Transport"),
           _createCategoryChip("Accommodation"),
+          _createCategoryChip("Electronics"),
+          _createCategoryChip("Presents"),
         ],
       ),
     );
   }
 
-  Widget _createCategoryChip(String text) {
+  Widget _createCategoryChip(String categoryName) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4.0),
       child: ChoiceChip(
-        label: Text(text),
-        selected: _createBloc.category == text,
-        avatar: CircleAvatar(child: Icon(Icons.directions_transit)),
+        label: Text(categoryName),
+        selected: _createBloc.category == categoryName,
+        avatar: CircleAvatar(child: Icon(iconForCategory(categoryName))),
         onSelected: (selected) {
           if (selected) {
             setState(() {
-              _createBloc.category = text;
+              _createBloc.category = categoryName;
             });
           }
         },
@@ -135,6 +143,7 @@ class CreateScreenState extends State<CreateScreen> {
         onChanged: (value) => setState(() {
               _createBloc.description = value;
             }),
+        textCapitalization: TextCapitalization.sentences,
         decoration: InputDecoration(
             border: OutlineInputBorder(), labelText: "Description"),
       ),
@@ -153,7 +162,7 @@ class CreateScreenState extends State<CreateScreen> {
               lastDate: DateTime.now().add(Duration(days: 365 * 10)));
           if (date != null) {
             setState(() {
-              _createBloc.date = date;
+              _createBloc.dateSink.add(date);
             });
           }
         },
@@ -190,12 +199,8 @@ class CreateScreenState extends State<CreateScreen> {
         decoration: InputDecoration(
           border: OutlineInputBorder(),
           labelText: "Where",
-          suffixIcon: IconButton(
-            icon: Icon(Icons.map),
-            onPressed: () {
-            },
-          ),
         ),
+        textCapitalization: TextCapitalization.sentences,
         enabled: _locationTextController.text != null,
       ),
     );
@@ -209,41 +214,43 @@ class CreateScreenState extends State<CreateScreen> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           Expanded(
-            child: StreamBuilder<Data<int>>(
-                stream: _createBloc.amountStream,
-                builder:
-                    (BuildContext context, AsyncSnapshot<Data<int>> snapshot) {
-                  return TextField(
-                    onChanged: (value) => setState(() {
-                          _createBloc.amountSink.add(value);
-                        }),
-                    keyboardType:
-                        TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        errorText: snapshot.data?.errorMessage,
-                        labelText: "How much"),
-                  );
-                }),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 8.0),
-            child: DropdownButton<String>(
-                value: _createBloc.currency,
-                onChanged: (value) => setState(() {
-                      _createBloc.currency = value;
-                    }),
-                items: <String>["AUD", "USD", "LKR"].map((String value) {
-                  return DropdownMenuItem<String>(
-                      value: value, child: Text(value));
-                }).toList()),
+            child: TextFormField(
+              validator: (value) => _createBloc.amountValidator(value),
+              onSaved: (value) { print("Saved!"); },
+              keyboardType:
+                TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                suffixIcon: _createCurrencyDropDown(),
+                labelText: "How much"
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
+  Widget _createCurrencyDropDown() {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0),
+      child: DropdownButton<String>(
+        value: _createBloc.currency,
+        onChanged: (value) => setState(() {
+          _createBloc.currency = value;
+        }),
+        items: <String>["AUD", "USD", "LKR"].map((String value) {
+          return DropdownMenuItem<String>(
+            value: value, child: Text(value));
+        }).toList()),
+    );
+  }
+
   void save(BuildContext outerContext) async {
+    if (!_formKey.currentState.validate()) {
+      return;
+    }
+
     final purchase = Purchase(
         _createBloc.category,
         _createBloc.description,
@@ -255,12 +262,12 @@ class CreateScreenState extends State<CreateScreen> {
         _createBloc.amount,
         _createBloc.currency);
 
-    var wait = widget.repository.createOrUpdatePurchase(purchase);
+    var uploadResult = widget.repository.createOrUpdatePurchase(purchase);
     showDialog(
         context: outerContext,
         builder: (BuildContext context) {
-          wait.then((_) {
-            Navigator.pop(context);
+          uploadResult.then((_) {
+            //Navigator.pop(context);
             Navigator.of(outerContext).pop();
           });
           return Dialog(
