@@ -1,5 +1,5 @@
 import 'package:expenditure_tracker/interface/user.dart';
-import 'package:expenditure_tracker/purchase.dart';
+import 'package:expenditure_tracker/interface/purchase.dart';
 
 abstract class Repository {
 

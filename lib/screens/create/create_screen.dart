@@ -1,8 +1,8 @@
 import 'package:expenditure_tracker/category_icons.dart';
 import 'package:expenditure_tracker/interface/location.dart';
-import 'package:expenditure_tracker/purchase.dart';
-import 'package:expenditure_tracker/create_bloc.dart';
+import 'package:expenditure_tracker/interface/purchase.dart';
 import 'package:expenditure_tracker/interface/repository.dart';
+import 'package:expenditure_tracker/screens/create/create_bloc.dart';
 import 'package:flutter/material.dart';
 
 class CreateScreen extends StatefulWidget {

@@ -1,9 +1,9 @@
-import 'package:expenditure_tracker/create_screen.dart';
-import 'package:expenditure_tracker/firebase_type_repository.dart';
-import 'package:expenditure_tracker/firebase_type_sign_in.dart';
-import 'package:expenditure_tracker/geolocator_type_location.dart';
-import 'package:expenditure_tracker/purchase_screen.dart';
-import 'package:expenditure_tracker/sign_in_screen.dart';
+import 'package:expenditure_tracker/interface/concrete/firebase_type_repository.dart';
+import 'package:expenditure_tracker/interface/concrete/firebase_type_sign_in.dart';
+import 'package:expenditure_tracker/interface/concrete/geolocator_type_location.dart';
+import 'package:expenditure_tracker/screens/create/create_screen.dart';
+import 'package:expenditure_tracker/screens/expenditures/purchase_screen.dart';
+import 'package:expenditure_tracker/screens/sign_in/sign_in_screen.dart';
 import 'package:flutter/material.dart';
 
 class ExpenditureTrack extends StatefulWidget {

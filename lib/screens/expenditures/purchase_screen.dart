@@ -1,7 +1,7 @@
 import 'package:expenditure_tracker/category_icons.dart';
 import 'package:expenditure_tracker/interface/repository.dart';
-import 'package:expenditure_tracker/purchase.dart';
-import 'package:expenditure_tracker/purchase_bloc.dart';
+import 'package:expenditure_tracker/interface/purchase.dart';
+import 'package:expenditure_tracker/screens/expenditures/purchase_bloc.dart';
 import 'package:expenditure_tracker/util.dart';
 import 'package:flutter/material.dart';
 

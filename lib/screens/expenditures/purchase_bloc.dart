@@ -1,5 +1,5 @@
 import 'package:expenditure_tracker/interface/repository.dart';
-import 'package:expenditure_tracker/purchase.dart';
+import 'package:expenditure_tracker/interface/purchase.dart';
 import 'package:rxdart/rxdart.dart';
 
 /// Control and logic exposing actions and Streams for the expenditure list UI.

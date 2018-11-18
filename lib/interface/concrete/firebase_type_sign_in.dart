@@ -1,4 +1,4 @@
-import 'package:expenditure_tracker/firebase_type_user.dart';
+import 'package:expenditure_tracker/interface/concrete/firebase_type_user.dart';
 import 'package:expenditure_tracker/interface/sign_in.dart';
 import 'package:expenditure_tracker/interface/user.dart';
 import 'package:firebase_auth/firebase_auth.dart';

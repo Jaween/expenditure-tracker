@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:expenditure_tracker/interface/repository.dart';
 import 'package:expenditure_tracker/interface/user.dart';
-import 'package:expenditure_tracker/purchase.dart';
+import 'package:expenditure_tracker/interface/purchase.dart';
 import 'package:rxdart/rxdart.dart';
 
 class FirebaseTypeRepository extends Repository {
