@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:expenditure_tracker/base_bloc.dart';
+import 'package:expenditure_tracker/interface/expenditure.dart';
 import 'package:expenditure_tracker/interface/location.dart';
+import 'package:expenditure_tracker/interface/navigation_router.dart';
 import 'package:intl/intl.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -17,30 +19,39 @@ class CreateBloc extends BlocBase {
   String amount = "";
   String currency = "AUD";
 
+  static final _dateFormat = DateFormat.yMMMd();
+
+  final NavigationRouter _navigationRouter;
+
   final Location _location;
 
-  final _dateSink = StreamController<DateTime>();
-  Sink<DateTime> get dateSink => _dateSink.sink;
+  final _dateController = BehaviorSubject<DateTime>();
+  Sink<DateTime> get dateSink => _dateController.sink;
 
-  static final _dateFormat = DateFormat.yMMMd();
-  final _formattedDateStream = BehaviorSubject<String>(seedValue: _dateFormat.format(DateTime.now()));
-  Stream<String> get formattedDateStream => _formattedDateStream;
+  final _formattedDateController = BehaviorSubject<String>(seedValue: _dateFormat.format(DateTime.now()));
+  Stream<String> get formattedDateStream => _formattedDateController;
 
-  final _currentPlaceStream = BehaviorSubject<Data<String>>();
-  Stream<Data<String>> get currentPlaceStream => _currentPlaceStream;
+  final _currentPlaceController = BehaviorSubject<Data<String>>();
+  Stream<Data<String>> get currentPlaceStream => _currentPlaceController;
 
-  CreateBloc(this._location) {
+  CreateBloc(this._navigationRouter, this._location, Expenditure initialExpenditure) {
+    if (initialExpenditure != null) {
+      print("Received expenditure ${initialExpenditure.description}");
+    } else {
+      print("Received no initial expenditure");
+    }
+
     _requestLocation();
-    _dateSink.stream.listen((date) {
+    _dateController.stream.listen((date) {
       this.date = date;
-      _formattedDateStream.add(_dateFormat.format(date));
+      _formattedDateController.add(_dateFormat.format(date));
     });
   }
 
   void _requestLocation() {
-    _currentPlaceStream.add(Data(Status.Loading, ""));
+    _currentPlaceController.add(Data(Status.Loading, ""));
     _location.getCurrentPlaceName().then((value) {
-      _currentPlaceStream.add(Data(value != null ? Status.Ok : Status.Error, value));
+      _currentPlaceController.add(Data(value != null ? Status.Ok : Status.Error, value));
     });
   }
 
@@ -54,10 +65,11 @@ class CreateBloc extends BlocBase {
     return null;
   }
 
+  @override
   void dispose() {
-    _dateSink.close();
-    _formattedDateStream.close();
-    _currentPlaceStream.close();
+    _dateController.close();
+    _formattedDateController.close();
+    _currentPlaceController.close();
   }
 }
 

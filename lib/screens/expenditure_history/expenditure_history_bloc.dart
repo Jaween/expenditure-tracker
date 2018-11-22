@@ -1,24 +1,30 @@
 import 'dart:async';
 
 import 'package:expenditure_tracker/base_bloc.dart';
+import 'package:expenditure_tracker/interface/navigation_router.dart';
 import 'package:expenditure_tracker/interface/repository.dart';
 import 'package:expenditure_tracker/interface/expenditure.dart';
 import 'package:rxdart/rxdart.dart';
 
 /// Control and logic exposing actions and Streams for the expenditure list UI.
 class ExpenditureHistoryBloc extends BlocBase {
+  final NavigationRouter _navigationRouter;
+
   final Repository _repository;
 
   final _items = BehaviorSubject<List<ExpenditureListItem>>();
   Stream<List<ExpenditureListItem>> get items => _items.stream;
 
+  final _createExpenditureAction = StreamController<void>();
+  Sink<void> get createExpenditureAction => _createExpenditureAction.sink;
+
   final _updateExpenditureAction = StreamController<Expenditure>();
-  Sink<Expenditure> get updateExpenditureAction => _updateExpenditureAction;
+  Sink<Expenditure> get updateExpenditureAction => _updateExpenditureAction.sink;
 
   final _deleteExpenditureAction = StreamController<Expenditure>();
-  Sink<Expenditure> get deleteExpenditureAction => _deleteExpenditureAction;
+  Sink<Expenditure> get deleteExpenditureAction => _deleteExpenditureAction.sink;
 
-  ExpenditureHistoryBloc(this._repository) {
+  ExpenditureHistoryBloc(this._navigationRouter, this._repository) {
     _repository.expenditures.listen((expenditures) {
       var reverseSortedExpenditures = List<Expenditure>.from(expenditures, growable: false);
       reverseSortedExpenditures.sort((Expenditure a, Expenditure b) => -a.date.compareTo(b.date));
@@ -28,8 +34,11 @@ class ExpenditureHistoryBloc extends BlocBase {
       _items.add(expendituresSeparatedByDate);
     });
 
+    _createExpenditureAction.stream.listen(
+        (_) => _navigationRouter.onNavigateToCreateScreen(null));
+
     _updateExpenditureAction.stream.listen(
-        (expenditure) => _repository.createOrUpdateExpenditure(expenditure));
+        (expenditure) => _navigationRouter.onNavigateToCreateScreen(expenditure));
 
     _deleteExpenditureAction.stream.listen(
         (expenditure) => _repository.deleteExpenditure(expenditure));
@@ -57,6 +66,7 @@ class ExpenditureHistoryBloc extends BlocBase {
   @override
   void dispose() {
     _items.close();
+    _createExpenditureAction.close();
     _updateExpenditureAction.close();
     _deleteExpenditureAction.close();
   }

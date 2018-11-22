@@ -36,7 +36,7 @@ class ExpenditureList extends StatelessWidget {
             );
           }),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.of(context).pushNamed('/create'),
+        onPressed: () => expenditureBloc.createExpenditureAction.add(null),
         child: Icon(Icons.add),
       ),
     );
@@ -106,61 +106,64 @@ class ExpenditureList extends StatelessWidget {
         Scaffold.of(context).showSnackBar(
             SnackBar(content: Text("Removed ${expenditure.description}")));
       },
-      child: SizedBox(
-        height: 64.0,
-        child: Row(
-          mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.only(left: 16.0, right: 16.0),
-              child: Icon(iconForCategory(expenditure.category)),
-            ),
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 4.0),
-                    child: Text(
-                      expenditure.description.isEmpty
-                          ? expenditure.category
-                          : expenditure.description,
+      child: GestureDetector(
+        onTap: () => expenditureBloc.updateExpenditureAction.add(expenditure),
+        child: SizedBox(
+          height: 64.0,
+          child: Row(
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.only(left: 16.0, right: 16.0),
+                child: Icon(iconForCategory(expenditure.category)),
+              ),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4.0),
+                      child: Text(
+                        expenditure.description.isEmpty
+                            ? expenditure.category
+                            : expenditure.description,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.body2,
+                      ),
+                    ),
+                    Text(
+                      expenditure.locationName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.caption,
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      expenditure.amount.toString(),
                       style: Theme.of(context).textTheme.body2,
                     ),
-                  ),
-                  Text(
-                    expenditure.locationName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.caption,
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Text(
-                    expenditure.amount.toString(),
-                    style: Theme.of(context).textTheme.body2,
-                  ),
-                  Text(
-                    expenditure.currency,
-                    style: Theme.of(context).textTheme.caption,
-                  ),
-                ],
-              ),
-            )
-          ],
+                    Text(
+                      expenditure.currency,
+                      style: Theme.of(context).textTheme.caption,
+                    ),
+                  ],
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );

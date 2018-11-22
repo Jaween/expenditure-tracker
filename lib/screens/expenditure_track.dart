@@ -1,6 +1,8 @@
 import 'package:expenditure_tracker/interface/concrete/firebase_type_repository.dart';
 import 'package:expenditure_tracker/interface/concrete/firebase_type_sign_in.dart';
 import 'package:expenditure_tracker/interface/concrete/geolocator_type_location.dart';
+import 'package:expenditure_tracker/interface/expenditure.dart';
+import 'package:expenditure_tracker/interface/navigation_router.dart';
 import 'package:expenditure_tracker/screens/bloc_provider.dart';
 import 'package:expenditure_tracker/screens/create/create_bloc.dart';
 import 'package:expenditure_tracker/screens/create/create_screen.dart';
@@ -16,6 +18,7 @@ class ExpenditureTrack extends StatefulWidget {
 
 class ExpenditureTrackState extends State<ExpenditureTrack> {
   FirebaseTypeSignIn _signIn;
+  NavigationRouter _navigationRouter;
 
   @override
   void initState() {
@@ -30,22 +33,44 @@ class ExpenditureTrackState extends State<ExpenditureTrack> {
       theme: ThemeData(
         brightness: Brightness.dark,
       ),
-      home: SignInScreen(_signIn),
-      routes: <String, WidgetBuilder>{
-        '/sign-in': (BuildContext context) => SignInScreen(_signIn),
-        '/expenditure-history': (BuildContext context) {
+      home: Builder(
+        builder: (BuildContext context) {
+          _navigationRouter = NavigationRouter(
+            onNavigateBack: () => Navigator.of(context).pop(),
+            onNavigateToExpenditureHistoryScreen: () => _navigateToExpenditureHistory(context),
+            onNavigateToCreateScreen: (expenditure) => _navigateToCreateScreen(context, expenditure)
+          );
+          return SignInScreen(_signIn, _navigationRouter);
+        },
+      ),
+    );
+  }
+
+  void _navigateToExpenditureHistory(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (BuildContext context) {
           return BlocProvider<ExpenditureHistoryBloc>(
-            bloc: ExpenditureHistoryBloc(FirebaseTypeRepository(_signIn.user)),
+            bloc: ExpenditureHistoryBloc(_navigationRouter, FirebaseTypeRepository(_signIn.user)),
             child: ExpenditureHistoryScreen(),
           );
-        },
-        '/create': (BuildContext context) {
+        }
+      ),
+    );
+  }
+
+  void _navigateToCreateScreen(BuildContext context, [Expenditure expenditure]) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (BuildContext context) {
           return BlocProvider<CreateBloc>(
-            bloc: CreateBloc(GeolocatorTypeLocation()),
+            bloc: CreateBloc(_navigationRouter, GeolocatorTypeLocation(), expenditure),
             child: CreateScreen(FirebaseTypeRepository(_signIn.user)),
           );
         }
-      },
+      ),
     );
   }
 }
