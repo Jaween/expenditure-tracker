@@ -7,6 +7,7 @@ abstract class Repository {
 
   Repository(User user);
 
-  Future<void> createOrUpdateExpenditure(Expenditure expenditure);
+  Future<void> createExpenditure(Expenditure expenditure);
+  Future<void> updateExpenditure(Expenditure expenditure, String id);
   Future<void> deleteExpenditure(Expenditure expenditure);
 }

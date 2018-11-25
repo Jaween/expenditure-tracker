@@ -52,7 +52,12 @@ class ExpenditureTrackState extends State<ExpenditureTrack> {
       MaterialPageRoute(
         builder: (BuildContext context) {
           return BlocProvider<ExpenditureHistoryBloc>(
-            bloc: ExpenditureHistoryBloc(_navigationRouter, FirebaseTypeRepository(_signIn.user)),
+            blocBuilder: () {
+              return ExpenditureHistoryBloc(
+                _navigationRouter,
+                FirebaseTypeRepository(_signIn.user)
+              );
+            },
             child: ExpenditureHistoryScreen(),
           );
         }
@@ -66,8 +71,20 @@ class ExpenditureTrackState extends State<ExpenditureTrack> {
       MaterialPageRoute(
         builder: (BuildContext context) {
           return BlocProvider<CreateBloc>(
-            bloc: CreateBloc(_navigationRouter, GeolocatorTypeLocation(), expenditure),
-            child: CreateScreen(FirebaseTypeRepository(_signIn.user)),
+            blocBuilder: () {
+              return CreateBloc(
+                _navigationRouter,
+                FirebaseTypeRepository(_signIn.user),
+                GeolocatorTypeLocation(),
+                expenditure
+              );
+            },
+            child: Builder(
+              builder: (context) {
+                final createBloc = BlocProvider.of<CreateBloc>(context);
+                return CreateScreen(createBloc: createBloc);
+              }
+            ),
           );
         }
       ),

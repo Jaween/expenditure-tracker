@@ -31,16 +31,21 @@ class FirebaseTypeRepository extends Repository {
   Stream<List<Expenditure>> get expenditures => _expenditures;
 
   @override
-  Future<void> createOrUpdateExpenditure(Expenditure expenditure) async {
-    final document = expenditure.id == null
-        ? _firestore.collection(_expendituresUri).document()
-        : _firestore.collection(_expendituresUri).document(expenditure.id);
-    await document.setData(expenditure.toMap());
+  Future<void> createExpenditure(Expenditure expenditure) async {
+    await _firestore.collection(_expendituresUri)
+      .document()
+      .setData(expenditure.toMap());
+  }
+
+  @override
+  Future<void> updateExpenditure(Expenditure expenditure, String id) async {
+    await _firestore.collection(_expendituresUri)
+      .document(id)
+      .updateData(expenditure.toMap());
   }
 
   @override
   Future<void> deleteExpenditure(Expenditure expenditure) async {
-    print("Want to delete expenditure with id ${expenditure.id}");
     await _firestore.collection(_expendituresUri)
         .document(expenditure.id)
         .delete();

@@ -1,48 +1,88 @@
 import 'package:expenditure_tracker/category_icons.dart';
 import 'package:expenditure_tracker/interface/expenditure.dart';
-import 'package:expenditure_tracker/interface/repository.dart';
 import 'package:expenditure_tracker/screens/bloc_provider.dart';
 import 'package:expenditure_tracker/screens/create/create_bloc.dart';
 import 'package:flutter/material.dart';
 
 class CreateScreen extends StatefulWidget {
-  final Repository repository;
+  final CreateBloc createBloc;
 
-  CreateScreen(
-    this.repository, {
+  CreateScreen({
     Key key,
-  })  : assert(repository != null),
-        super(key: key);
+    @required this.createBloc,
+  }) : super(key: key);
 
   @override
-  CreateScreenState createState() {
-    return new CreateScreenState();
-  }
+  CreateScreenState createState() => CreateScreenState();
 }
 
 class CreateScreenState extends State<CreateScreen> {
+  TextEditingController _descriptionTextController;
   TextEditingController _locationTextController;
+  TextEditingController _amountTextController;
   final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
 
+    _descriptionTextController = TextEditingController();
     _locationTextController = TextEditingController();
+    _amountTextController = TextEditingController();
 
-    final createBloc = BlocProvider.of<CreateBloc>(context);
+    final createBloc = widget.createBloc;
+    createBloc.initialExpenditureStream.listen((initialExpenditure) {
+        _descriptionTextController.text = initialExpenditure.description;
+        _locationTextController.text = initialExpenditure.locationName;
+        _amountTextController.text = initialExpenditure.amount;
+    });
+
     createBloc.currentPlaceStream.listen((value) {
       if (value.status == Status.Ok) {
         _locationTextController.text = value.data;
       }
     });
+
+    _descriptionTextController.addListener(() {
+      createBloc.descriptionSink.add(_descriptionTextController.text);
+    });
+
     _locationTextController.addListener(() {
-      createBloc.locationName = _locationTextController.text;
+      createBloc.locationSink.add(_locationTextController.text);
+    });
+
+    _amountTextController.addListener(() {
+      createBloc.amountSink.add(_amountTextController.text);
+    });
+
+    createBloc.loadingIndicatorStream.listen((loading) {
+      if (loading) {
+        showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Center(
+                  child: SizedBox(
+                    width: 100,
+                    height: 100,
+                    child: CircularProgressIndicator()
+                  ),
+                ),
+              ],
+            ),
+          );
+        });
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final createBloc = BlocProvider.of<CreateBloc>(context);
     return Scaffold(
       appBar: AppBar(
         title: Text("Create"),
@@ -50,7 +90,9 @@ class CreateScreenState extends State<CreateScreen> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: RaisedButton(
-              onPressed: () => save(context),
+              onPressed: () {
+                createBloc.saveActionSink.add(null);
+              },
               child: Text("SAVE"),
             ),
           )
@@ -63,11 +105,11 @@ class CreateScreenState extends State<CreateScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.max,
             children: <Widget>[
-              _createWithIcon(Icons.category, _createCategoryChips(context)),
-              _createWithIcon(Icons.description, _createDescription(context)),
-              _createWithIcon(Icons.date_range, _createDate(context)),
-              _createWithIcon(Icons.place, _createLocation(context)),
-              _createWithIcon(Icons.monetization_on, _createAmount(context)),
+              _createWithIcon(Icons.category, _createCategoryChips(context, createBloc)),
+              _createWithIcon(Icons.description, _createDescription(context, createBloc)),
+              _createWithIcon(Icons.date_range, _createDate(context, createBloc)),
+              _createWithIcon(Icons.place, _createLocation(context, createBloc)),
+              _createWithIcon(Icons.monetization_on, _createAmount(context, createBloc)),
             ],
           ),
         ),
@@ -97,103 +139,120 @@ class CreateScreenState extends State<CreateScreen> {
     );
   }
 
-  Widget _createCategoryChips(BuildContext context) {
+  Widget _createCategoryChips(BuildContext context, CreateBloc createBloc) {
     return Container(
       height: 56.0,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: <Widget>[
-          _createCategoryChip("Food"),
-          _createCategoryChip("Drinks"),
-          _createCategoryChip("Transport"),
-          _createCategoryChip("Accommodation"),
-          _createCategoryChip("Electronics"),
-          _createCategoryChip("Presents"),
-        ],
+      child: StreamBuilder<Expenditure>(
+        stream: createBloc.initialExpenditureStream,
+        builder: (context, snapshot) {
+          String selectedCategory = "Food";
+          if (snapshot.data != null) {
+            selectedCategory = snapshot.data.category;
+          }
+          return StreamBuilder<String>(
+            stream: createBloc.categoryStream,
+            builder: (builder, snapshot) {
+              if (snapshot.data != null) {
+                selectedCategory = snapshot.data;
+              }
+              return ListView(
+                scrollDirection: Axis.horizontal,
+                children: <Widget>[
+                  _createCategoryChip("Food", createBloc, selectedCategory),
+                  _createCategoryChip("Drinks", createBloc, selectedCategory),
+                  _createCategoryChip("Transport", createBloc, selectedCategory),
+                  _createCategoryChip("Accommodation", createBloc, selectedCategory),
+                  _createCategoryChip("Electronics", createBloc, selectedCategory),
+                  _createCategoryChip("Presents", createBloc, selectedCategory),
+                ],
+              );
+            },
+          );
+        },
       ),
     );
   }
 
-  Widget _createCategoryChip(String categoryName) {
-    final createBloc = BlocProvider.of<CreateBloc>(context);
+  Widget _createCategoryChip(String categoryName, CreateBloc createBloc,
+      String selectedCategory) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4.0),
       child: ChoiceChip(
         label: Text(categoryName),
-        selected: createBloc.category == categoryName,
+        selected: categoryName == selectedCategory,
         avatar: CircleAvatar(child: Icon(iconForCategory(categoryName))),
-        onSelected: (selected) {
-          if (selected) {
-            setState(() {
-              createBloc.category = categoryName;
-            });
-          }
-        },
+        onSelected: (selected) => createBloc.categorySink.add(categoryName),
       ),
     );
   }
 
-  Widget _createDescription(BuildContext context) {
-    final createBloc = BlocProvider.of<CreateBloc>(context);
+  Widget _createDescription(BuildContext context, CreateBloc createBloc) {
     return Padding(
       padding: const EdgeInsets.only(right: 16.0),
-      child: TextField(
-        onChanged: (value) => setState(() {
-              createBloc.description = value;
-            }),
+      child: TextFormField(
+        controller: _descriptionTextController,
         textCapitalization: TextCapitalization.sentences,
         decoration: InputDecoration(
-            border: OutlineInputBorder(), labelText: "Description"),
-      ),
-    );
-  }
-
-  Widget _createDate(BuildContext context) {
-    final createBloc = BlocProvider.of<CreateBloc>(context);
-    return Padding(
-      padding: const EdgeInsets.only(right: 16.0),
-      child: InkWell(
-        onTap: () async {
-          final date = await showDatePicker(
-              context: context,
-              initialDate: createBloc.date,
-              firstDate: DateTime(2010),
-              lastDate: DateTime.now().add(Duration(days: 365 * 10)));
-          if (date != null) {
-            setState(() {
-              createBloc.dateSink.add(date);
-            });
-          }
-        },
-        child: Container(
-          height: 56.0,
-          child: Row(
-            mainAxisSize: MainAxisSize.max,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Expanded(
-                child: StreamBuilder<String>(
-                  stream: createBloc.formattedDateStream,
-                  builder:
-                      (BuildContext context, AsyncSnapshot<String> snapshot) {
-                    if (!snapshot.hasData) {
-                      return Text("No data");
-                    }
-                    return Text(snapshot.data);
-                  },
-                ),
-              ),
-            ],
-          ),
+          border: OutlineInputBorder(),
+          labelText: "Description"
         ),
       ),
     );
   }
 
-  Widget _createLocation(BuildContext context) {
+  Widget _createDate(BuildContext context, CreateBloc createBloc) {
     return Padding(
       padding: const EdgeInsets.only(right: 16.0),
-      child: TextField(
+      child: StreamBuilder<Expenditure>(
+        stream: createBloc.initialExpenditureStream,
+        builder: (builder, snapshot) {
+          DateTime selectedDate;
+          if (snapshot.data != null) {
+            selectedDate = snapshot.data.date;
+          } else {
+            selectedDate = DateTime.now();
+          }
+          return InkWell(
+            onTap: () async {
+              final date = await showDatePicker(
+                context: context,
+                initialDate: selectedDate,
+                firstDate: DateTime(2010),
+                lastDate: DateTime.now().add(Duration(days: 365 * 10)));
+              if (date != null) {
+                createBloc.dateSink.add(date);
+              }
+            },
+            child: Container(
+              height: 56.0,
+              child: Row(
+                mainAxisSize: MainAxisSize.max,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Expanded(
+                    child: StreamBuilder<String>(
+                      stream: createBloc.formattedDateStream,
+                      builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+                        if (!snapshot.hasData) {
+                          return Text("No formatted date data");
+                        }
+                        return Text(snapshot.data);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _createLocation(BuildContext context, CreateBloc createBloc) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 16.0),
+      child: TextFormField(
         controller: _locationTextController,
         decoration: InputDecoration(
           border: OutlineInputBorder(),
@@ -205,8 +264,7 @@ class CreateScreenState extends State<CreateScreen> {
     );
   }
 
-  Widget _createAmount(BuildContext context) {
-    final createBloc = BlocProvider.of<CreateBloc>(context);
+  Widget _createAmount(BuildContext context, CreateBloc createBloc) {
     return Padding(
       padding: const EdgeInsets.only(right: 16.0),
       child: Row(
@@ -215,13 +273,12 @@ class CreateScreenState extends State<CreateScreen> {
         children: <Widget>[
           Expanded(
             child: TextFormField(
+              controller: _amountTextController,
               validator: (value) => createBloc.amountValidator(value),
-              onSaved: (value) { print("Saved!"); },
-              keyboardType:
-                TextInputType.numberWithOptions(decimal: true),
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
               decoration: InputDecoration(
                 border: OutlineInputBorder(),
-                suffixIcon: _createCurrencyDropDown(),
+                suffixIcon: _createCurrencyDropDown(createBloc),
                 labelText: "How much"
               ),
             ),
@@ -231,61 +288,34 @@ class CreateScreenState extends State<CreateScreen> {
     );
   }
 
-  Widget _createCurrencyDropDown() {
-    final createBloc = BlocProvider.of<CreateBloc>(context);
+  Widget _createCurrencyDropDown(CreateBloc createBloc) {
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
-      child: DropdownButton<String>(
-        value: createBloc.currency,
-        onChanged: (value) => setState(() {
-          createBloc.currency = value;
-        }),
-        items: <String>["AUD", "USD", "LKR"].map((String value) {
-          return DropdownMenuItem<String>(
-            value: value, child: Text(value));
-        }).toList()),
-    );
-  }
-
-  void save(BuildContext outerContext) async {
-    if (!_formKey.currentState.validate()) {
-      return;
-    }
-
-    final createBloc = BlocProvider.of<CreateBloc>(context);
-    final expenditure = Expenditure(
-        createBloc.category,
-        createBloc.description,
-        createBloc.date,
-        createBloc.latitude,
-        createBloc.longitude,
-        createBloc.locationType,
-        createBloc.locationName,
-        createBloc.amount,
-        createBloc.currency);
-
-    var uploadResult = widget.repository.createOrUpdateExpenditure(expenditure);
-    showDialog(
-        context: outerContext,
-        builder: (BuildContext context) {
-          uploadResult.then((_) {
-            //Navigator.pop(context);
-            Navigator.of(outerContext).pop();
-          });
-          return Dialog(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Center(
-                  child: SizedBox(
-                      width: 100,
-                      height: 100,
-                      child: CircularProgressIndicator()),
-                ),
-              ],
-            ),
+      child: StreamBuilder<Expenditure>(
+        stream: createBloc.initialExpenditureStream,
+        builder: (builder, snapshot) {
+          String data;
+          if (snapshot.data != null) {
+            data = snapshot.data.currency;
+          }
+          return StreamBuilder<String>(
+            stream: createBloc.currencyStream,
+            builder: (context, snapshot) {
+              if (snapshot.data != null) {
+                data = snapshot.data;
+              }
+              return DropdownButton<String>(
+                value: data == null ? CreateBloc.currencies[0] : data,
+                onChanged: (category) => createBloc.currencySink.add(category),
+                items: CreateBloc.currencies.map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value, child: Text(value));
+                }).toList()
+              );
+            }
           );
-        });
+        }
+      ),
+    );
   }
 }
