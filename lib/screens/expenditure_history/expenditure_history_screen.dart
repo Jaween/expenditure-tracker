@@ -1,4 +1,4 @@
-import 'package:expenditure_tracker/category_icons.dart';
+import 'package:expenditure_tracker/util/category_icons.dart';
 import 'package:expenditure_tracker/interface/expenditure.dart';
 import 'package:expenditure_tracker/screens/bloc_provider.dart';
 import 'package:expenditure_tracker/screens/expenditure_history/expenditure_history_bloc.dart';
@@ -98,66 +98,82 @@ class ExpenditureList extends StatelessWidget {
 
   Widget _buildExpenditureItem(BuildContext context, Expenditure expenditure) {
     final expenditureBloc = BlocProvider.of<ExpenditureHistoryBloc>(context);
-    return InkWell(
-      onTap: () => expenditureBloc.updateExpenditureAction.add(expenditure),
-      onLongPress: () => print("Long pressed item ${expenditure.description}"),
-      child: SizedBox(
-        height: 64.0,
-        child: Row(
-          mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.only(left: 16.0, right: 16.0),
-              child: Icon(iconForCategory(expenditure.category)),
-            ),
-            Expanded(
-              child: Column(
+    return Column(
+      children: <Widget>[
+        Dismissible(
+          key: Key(expenditure.id),
+          background: Container(
+            color: Colors.red.shade500,
+          ),
+          onDismissed: (direction) {
+            expenditureBloc.deleteExpenditureAction.add(expenditure);
+          },
+          child: InkWell(
+            onTap: () => expenditureBloc.updateExpenditureAction.add(expenditure),
+            child: SizedBox(
+              height: 64.0,
+              child: Row(
                 mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 4.0),
-                    child: Text(
-                      expenditure.description.isEmpty
-                          ? expenditure.category
-                          : expenditure.description,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.body2,
-                    ),
-                  ),
-                  Text(
-                    expenditure.locationName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.caption,
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-                  Text(
-                    expenditure.amount.toString(),
-                    style: Theme.of(context).textTheme.body2,
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16.0, right: 16.0),
+                    child: Icon(iconForCategory(expenditure.category)),
                   ),
-                  Text(
-                    expenditure.currency,
-                    style: Theme.of(context).textTheme.caption,
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4.0),
+                          child: Text(
+                            expenditure.description.isEmpty
+                                ? expenditure.category
+                                : expenditure.description,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.body2,
+                          ),
+                        ),
+                        Text(
+                          expenditure.locationName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.caption,
+                        ),
+                      ],
+                    ),
                   ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          expenditure.amount.toString(),
+                          style: Theme.of(context).textTheme.body2,
+                        ),
+                        Text(
+                          expenditure.currency,
+                          style: Theme.of(context).textTheme.caption,
+                        ),
+                      ],
+                    ),
+                  )
                 ],
               ),
-            )
-          ],
+            ),
+          ),
         ),
-      ),
+        Container(
+          height: 1.0,
+          color: Theme.of(context).dividerColor,
+        )
+      ],
     );
   }
 }
