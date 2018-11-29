@@ -1,4 +1,4 @@
-import 'package:expenditure_tracker/category_icons.dart';
+import 'package:expenditure_tracker/util/category_icons.dart';
 import 'package:expenditure_tracker/interface/expenditure.dart';
 import 'package:expenditure_tracker/screens/bloc_provider.dart';
 import 'package:expenditure_tracker/screens/create/create_bloc.dart';
@@ -145,7 +145,7 @@ class CreateScreenState extends State<CreateScreen> {
       child: StreamBuilder<Expenditure>(
         stream: createBloc.initialExpenditureStream,
         builder: (context, snapshot) {
-          String selectedCategory = "Food";
+          String selectedCategory;
           if (snapshot.data != null) {
             selectedCategory = snapshot.data.category;
           }
@@ -155,16 +155,14 @@ class CreateScreenState extends State<CreateScreen> {
               if (snapshot.data != null) {
                 selectedCategory = snapshot.data;
               }
-              return ListView(
+              return ListView.builder(
                 scrollDirection: Axis.horizontal,
-                children: <Widget>[
-                  _createCategoryChip("Food", createBloc, selectedCategory),
-                  _createCategoryChip("Drinks", createBloc, selectedCategory),
-                  _createCategoryChip("Transport", createBloc, selectedCategory),
-                  _createCategoryChip("Accommodation", createBloc, selectedCategory),
-                  _createCategoryChip("Electronics", createBloc, selectedCategory),
-                  _createCategoryChip("Presents", createBloc, selectedCategory),
-                ],
+                itemCount: categoryCount(),
+                itemBuilder: (context, position) {
+                  final name = getCategory(position);
+                  final selected = name == selectedCategory;
+                  return _createCategoryChip(name, createBloc, selected);
+                },
               );
             },
           );
@@ -174,12 +172,12 @@ class CreateScreenState extends State<CreateScreen> {
   }
 
   Widget _createCategoryChip(String categoryName, CreateBloc createBloc,
-      String selectedCategory) {
+      bool selected) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4.0),
       child: ChoiceChip(
         label: Text(categoryName),
-        selected: categoryName == selectedCategory,
+        selected: selected,
         avatar: CircleAvatar(child: Icon(iconForCategory(categoryName))),
         onSelected: (selected) => createBloc.categorySink.add(categoryName),
       ),

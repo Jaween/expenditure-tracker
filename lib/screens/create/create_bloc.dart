@@ -5,6 +5,8 @@ import 'package:expenditure_tracker/interface/expenditure.dart';
 import 'package:expenditure_tracker/interface/location.dart';
 import 'package:expenditure_tracker/interface/navigation_router.dart';
 import 'package:expenditure_tracker/interface/repository.dart';
+import 'package:expenditure_tracker/util/category_icons.dart';
+import 'package:expenditure_tracker/util/input_validators.dart';
 import 'package:intl/intl.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -70,10 +72,21 @@ class CreateBloc extends BlocBase {
 
   CreateBloc(this._navigationRouter, this._repository, this._location, Expenditure initialExpenditure) {
     if (initialExpenditure != null) {
-      _expenditureId = initialExpenditure.id;
       _initialExpenditureController.sink.add(initialExpenditure);
+      _expenditureId = initialExpenditure.id;
+      _category = initialExpenditure.category;
+      _description = initialExpenditure.description;
+      _date = initialExpenditure.date;
+      _latitude = initialExpenditure.latitude;
+      _longitude = initialExpenditure.longitude;
+      _locationType = initialExpenditure.locationType;
+      _locationName = initialExpenditure.locationName;
+      _amount = initialExpenditure.amount;
+      _currency = initialExpenditure.currency;
+
       _dateController.sink.add(initialExpenditure.date);
     } else {
+      categorySink.add(getCategory(0));
       _requestLocation();
     }
 
@@ -105,16 +118,10 @@ class CreateBloc extends BlocBase {
   }
 
   String amountValidator(String amount) {
-    double amountDouble = double.tryParse(amount);
-    if (amountDouble == null) {
-      return "Enter a valid amount";
-    }
-    _amount = amount;
-
-    return null;
+    return validate(() => validateAmount(amount), () => _amount = amount);
   }
 
-  void _save() {
+  void _save() async {
     //if (!_formKey.currentState.validate()) {
     //  return;
     //}
@@ -131,16 +138,13 @@ class CreateBloc extends BlocBase {
         _currency);
 
     _loadingIndicatorController.sink.add(true);
-    _saveInt(expenditure);
-    _navigationRouter.navigateToExpenditureHistoryScreen();
-  }
-
-  void _saveInt(Expenditure expenditure) async {
     if (_expenditureId == null) {
       await _repository.createExpenditure(expenditure);
     } else {
       await _repository.updateExpenditure(expenditure, _expenditureId);
     }
+    _loadingIndicatorController.sink.add(false);
+    _navigationRouter.navigateToExpenditureHistoryScreen();
   }
 
   @override
