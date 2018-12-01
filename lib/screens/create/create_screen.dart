@@ -26,34 +26,25 @@ class CreateScreenState extends State<CreateScreen> {
   void initState() {
     super.initState();
 
-    _descriptionTextController = TextEditingController();
-    _locationTextController = TextEditingController();
-    _amountTextController = TextEditingController();
-
     final createBloc = widget.createBloc;
-    createBloc.initialExpenditureStream.listen((initialExpenditure) {
-        _descriptionTextController.text = initialExpenditure.description;
-        _locationTextController.text = initialExpenditure.locationName;
-        _amountTextController.text = initialExpenditure.amount;
-    });
 
-    createBloc.currentPlaceStream.listen((value) {
-      if (value.status == Status.Ok) {
-        _locationTextController.text = value.data;
-      }
-    });
+    _descriptionTextController = TextEditingController();
+    _descriptionTextController.addListener(
+        () => createBloc.actionDescriptionUpdate.add(_descriptionTextController.text));
+    createBloc.descriptionStream.listen(
+        (description) => _descriptionTextController.text = description);
 
-    _descriptionTextController.addListener(() {
-      createBloc.descriptionSink.add(_descriptionTextController.text);
-    });
+    _locationTextController = TextEditingController();
+    _locationTextController.addListener(
+        () => createBloc.actionLocationUpdate.add(_locationTextController.text));
+    createBloc.locationStream.listen(
+        (location) => _locationTextController.text = location);
 
-    _locationTextController.addListener(() {
-      createBloc.locationSink.add(_locationTextController.text);
-    });
-
-    _amountTextController.addListener(() {
-      createBloc.amountSink.add(_amountTextController.text);
-    });
+    _amountTextController = TextEditingController();
+    _amountTextController.addListener(
+        () => createBloc.actionAmountUpdate.add(_amountTextController.text));
+    createBloc.amountStream.listen(
+        (amount) => _amountTextController.text = amount);
 
     createBloc.loadingIndicatorStream.listen((loading) {
       if (loading) {
@@ -61,18 +52,12 @@ class CreateScreenState extends State<CreateScreen> {
         context: context,
         builder: (BuildContext context) {
           return Dialog(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Center(
-                  child: SizedBox(
-                    width: 100,
-                    height: 100,
-                    child: CircularProgressIndicator()
-                  ),
-                ),
-              ],
+            child: Center(
+              child: SizedBox(
+                width: 50,
+                height: 50,
+                child: CircularProgressIndicator()
+              ),
             ),
           );
         });
@@ -91,7 +76,7 @@ class CreateScreenState extends State<CreateScreen> {
             padding: const EdgeInsets.all(8.0),
             child: RaisedButton(
               onPressed: () {
-                createBloc.saveActionSink.add(null);
+                createBloc.actionSave.add(null);
               },
               child: Text("SAVE"),
             ),
@@ -142,32 +127,21 @@ class CreateScreenState extends State<CreateScreen> {
   Widget _createCategoryChips(BuildContext context, CreateBloc createBloc) {
     return Container(
       height: 56.0,
-      child: StreamBuilder<Expenditure>(
-        stream: createBloc.initialExpenditureStream,
+      child: StreamBuilder<String>(
+        stream: createBloc.categoryStream,
+        initialData: createBloc.category,
         builder: (context, snapshot) {
-          String selectedCategory;
-          if (snapshot.data != null) {
-            selectedCategory = snapshot.data.category;
-          }
-          return StreamBuilder<String>(
-            stream: createBloc.categoryStream,
-            builder: (builder, snapshot) {
-              if (snapshot.data != null) {
-                selectedCategory = snapshot.data;
-              }
-              return ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: categoryCount(),
-                itemBuilder: (context, position) {
-                  final name = getCategory(position);
-                  final selected = name == selectedCategory;
-                  return _createCategoryChip(name, createBloc, selected);
-                },
-              );
+          return ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: categoryNameIconList.length,
+            itemBuilder: (context, position) {
+              final name = categoryNameIconList[position].item1;
+              final selected = name == snapshot.data;
+              return _createCategoryChip(name, createBloc, selected);
             },
           );
-        },
-      ),
+        }
+      )
     );
   }
 
@@ -179,7 +153,7 @@ class CreateScreenState extends State<CreateScreen> {
         label: Text(categoryName),
         selected: selected,
         avatar: CircleAvatar(child: Icon(iconForCategory(categoryName))),
-        onSelected: (selected) => createBloc.categorySink.add(categoryName),
+        onSelected: (selected) => createBloc.actionCategorySelect.add(categoryName),
       ),
     );
   }
@@ -201,24 +175,19 @@ class CreateScreenState extends State<CreateScreen> {
   Widget _createDate(BuildContext context, CreateBloc createBloc) {
     return Padding(
       padding: const EdgeInsets.only(right: 16.0),
-      child: StreamBuilder<Expenditure>(
-        stream: createBloc.initialExpenditureStream,
+      child: StreamBuilder<DateTime>(
+        stream: createBloc.dateStream,
+        initialData: createBloc.date,
         builder: (builder, snapshot) {
-          DateTime selectedDate;
-          if (snapshot.data != null) {
-            selectedDate = snapshot.data.date;
-          } else {
-            selectedDate = DateTime.now();
-          }
           return InkWell(
             onTap: () async {
               final date = await showDatePicker(
                 context: context,
-                initialDate: selectedDate,
+                initialDate: snapshot.data,
                 firstDate: DateTime(2010),
                 lastDate: DateTime.now().add(Duration(days: 365 * 10)));
               if (date != null) {
-                createBloc.dateSink.add(date);
+                createBloc.actionDateUpdateController.add(date);
               }
             },
             child: Container(
@@ -229,11 +198,9 @@ class CreateScreenState extends State<CreateScreen> {
                 children: <Widget>[
                   Expanded(
                     child: StreamBuilder<String>(
+                      initialData: createBloc.formattedDate,
                       stream: createBloc.formattedDateStream,
                       builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
-                        if (!snapshot.hasData) {
-                          return Text("No formatted date data");
-                        }
                         return Text(snapshot.data);
                       },
                     ),
@@ -289,28 +256,17 @@ class CreateScreenState extends State<CreateScreen> {
   Widget _createCurrencyDropDown(CreateBloc createBloc) {
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
-      child: StreamBuilder<Expenditure>(
-        stream: createBloc.initialExpenditureStream,
-        builder: (builder, snapshot) {
-          String data;
-          if (snapshot.data != null) {
-            data = snapshot.data.currency;
-          }
-          return StreamBuilder<String>(
-            stream: createBloc.currencyStream,
-            builder: (context, snapshot) {
-              if (snapshot.data != null) {
-                data = snapshot.data;
-              }
-              return DropdownButton<String>(
-                value: data == null ? CreateBloc.currencies[0] : data,
-                onChanged: (category) => createBloc.currencySink.add(category),
-                items: CreateBloc.currencies.map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value, child: Text(value));
-                }).toList()
-              );
-            }
+      child: StreamBuilder<String>(
+        initialData: createBloc.currency,
+        stream: createBloc.currencyStream,
+        builder: (context, snapshot) {
+          return DropdownButton<String>(
+            value: snapshot.data,
+            onChanged: (category) => createBloc.actionCurrencyUpdate.add(category),
+            items: CreateBloc.currencies.map((String value) {
+              return DropdownMenuItem<String>(
+                value: value, child: Text(value));
+            }).toList()
           );
         }
       ),

@@ -10,6 +10,7 @@ import 'package:expenditure_tracker/screens/expenditure_history/expenditure_hist
 import 'package:expenditure_tracker/screens/expenditure_history/expenditure_history_screen.dart';
 import 'package:expenditure_tracker/screens/sign_in/sign_in_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:quiver/time.dart';
 
 class ExpenditureTrack extends StatefulWidget {
   @override
@@ -76,6 +77,7 @@ class ExpenditureTrackState extends State<ExpenditureTrack> {
                 _navigationRouter,
                 FirebaseTypeRepository(_signIn.user),
                 GeolocatorTypeLocation(),
+                Clock(),
                 expenditure
               );
             },
