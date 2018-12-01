@@ -31,19 +31,19 @@ class CreateScreenState extends State<CreateScreen> {
     _descriptionTextController = TextEditingController();
     _descriptionTextController.addListener(
         () => createBloc.actionDescriptionUpdate.add(_descriptionTextController.text));
-    createBloc.descriptionStream.listen(
+    createBloc.descriptionStream.first.then(
         (description) => _descriptionTextController.text = description);
 
     _locationTextController = TextEditingController();
     _locationTextController.addListener(
         () => createBloc.actionLocationUpdate.add(_locationTextController.text));
-    createBloc.locationStream.listen(
+    createBloc.locationStream.first.then(
         (location) => _locationTextController.text = location);
 
     _amountTextController = TextEditingController();
     _amountTextController.addListener(
         () => createBloc.actionAmountUpdate.add(_amountTextController.text));
-    createBloc.amountStream.listen(
+    createBloc.amountStream.first.then(
         (amount) => _amountTextController.text = amount);
 
     createBloc.loadingIndicatorStream.listen((loading) {
@@ -187,7 +187,7 @@ class CreateScreenState extends State<CreateScreen> {
                 firstDate: DateTime(2010),
                 lastDate: DateTime.now().add(Duration(days: 365 * 10)));
               if (date != null) {
-                createBloc.actionDateUpdateController.add(date);
+                createBloc.actionDateUpdate.add(date);
               }
             },
             child: Container(

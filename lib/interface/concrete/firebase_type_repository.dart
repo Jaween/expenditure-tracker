@@ -38,9 +38,9 @@ class FirebaseTypeRepository extends Repository {
   }
 
   @override
-  Future<void> updateExpenditure(Expenditure expenditure, String id) async {
+  Future<void> updateExpenditure(Expenditure expenditure) async {
     await _firestore.collection(_expendituresUri)
-      .document(id)
+      .document(expenditure.id)
       .updateData(expenditure.toMap());
   }
 

@@ -1,3 +1,5 @@
+import 'package:quiver/core.dart';
+
 class Expenditure {
   String id;
   final String category;
@@ -32,4 +34,20 @@ class Expenditure {
       'amount': amount,
       'currency': currency,
     };
+
+  @override
+  int get hashCode => hashObjects(
+      [id, category, description, date, locationName, amount, currency]);
+
+  @override
+  bool operator ==(other) {
+    return other is Expenditure &&
+        category == other.category &&
+        description == other.description &&
+        date == other.date &&
+        locationName == other.locationName &&
+        amount == other.amount &&
+        currency == other.currency &&
+        id == other.id;
+  }
 }

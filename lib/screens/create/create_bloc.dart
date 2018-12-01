@@ -79,14 +79,13 @@ class CreateBloc extends BlocBase {
       _actionDescriptionUpdateController.sink;
 
   final _actionDateUpdateController = BehaviorSubject<DateTime>();
-  Sink<DateTime> get actionDateUpdateController =>
-      _actionDateUpdateController.sink;
+  Sink<DateTime> get actionDateUpdate => _actionDateUpdateController.sink;
 
   final _actionLocationUpdateController = BehaviorSubject<String>();
   Sink<String> get actionLocationUpdate => _actionLocationUpdateController.sink;
 
   final _actionAmountUpdateController = BehaviorSubject<String>();
-  Sink<String> get actionAmountUpdate => _actionLocationUpdateController.sink;
+  Sink<String> get actionAmountUpdate => _actionAmountUpdateController.sink;
 
   final _actionCurrencyUpdateController = BehaviorSubject<String>();
   Sink<String> get actionCurrencyUpdate => _currencyController.sink;
@@ -96,24 +95,7 @@ class CreateBloc extends BlocBase {
 
   CreateBloc(this._navigationRouter, this._repository, this._location,
       this._clock, Expenditure initialExpenditure) {
-    if (initialExpenditure != null) {
-      _expenditureId = initialExpenditure.id;
-      _category = initialExpenditure.category;
-      _description = initialExpenditure.description;
-      _date = initialExpenditure.date;
-      _formattedDate = _dateFormat.format(initialExpenditure.date);
-      _locationName = initialExpenditure.locationName;
-      _amount = initialExpenditure.amount;
-      _currency = initialExpenditure.currency;
-
-      _categoryController.sink.add(_category);
-      _descriptionController.sink.add(_description);
-      _dateController.sink.add(_date);
-      _formattedDateController.sink.add(_formattedDate);
-      _locationController.sink.add(_locationName);
-      _amountController.sink.add(_amount);
-      _currencyController.sink.add(_currency);
-    } else {
+    if (initialExpenditure == null) {
       _category = categoryNameIconList[0].item1;
       _description = "";
       _date = _clock.now();
@@ -131,30 +113,54 @@ class CreateBloc extends BlocBase {
       _currencyController.sink.add(_currency);
 
       _requestLocation();
+    } else {
+      _expenditureId = initialExpenditure.id;
+      _category = initialExpenditure.category;
+      _description = initialExpenditure.description;
+      _date = initialExpenditure.date;
+      _formattedDate = _dateFormat.format(initialExpenditure.date);
+      _locationName = initialExpenditure.locationName;
+      _amount = initialExpenditure.amount;
+      _currency = initialExpenditure.currency;
+
+      _categoryController.sink.add(_category);
+      _descriptionController.sink.add(_description);
+      _dateController.sink.add(_date);
+      _formattedDateController.sink.add(_formattedDate);
+      _locationController.sink.add(_locationName);
+      _amountController.sink.add(_amount);
+      _currencyController.sink.add(_currency);
     }
 
     _actionCategorySelectController.stream.listen((category) {
       _category = category;
-      _categoryController.sink.add(category);
+      _categoryController.sink.add(_category);
     });
 
-    _actionDescriptionUpdateController
-        .listen((description) => _description = description);
+    _actionDescriptionUpdateController.listen((description) {
+      _description = description;
+      _descriptionController.sink.add(_description);
+    });
 
     _actionDateUpdateController.listen((date) {
       _date = date;
       _dateController.sink.add(_date);
-      _formattedDateController.add(_dateFormat.format(date));
+      _formattedDateController.add(_dateFormat.format(_date));
     });
 
-    _actionLocationUpdateController.listen(
-        (location) => _locationName = location);
+    _actionLocationUpdateController.listen((location) {
+      _locationName = location;
+      _locationController.sink.add(_locationName);
+    });
 
-    _actionAmountUpdateController.listen((amount) => _amount = amount);
+    _actionAmountUpdateController.listen((amount) {
+      _amount = amount;
+      _amountController.sink.add(_amount);
+    });
 
     _actionCurrencyUpdateController.listen((currency) {
       _currency = currency;
-      _currencyController.sink.add(currency);
+      _currencyController.sink.add(_currency);
     });
 
     _actionSaveController.stream.listen((_) => _save());
@@ -179,13 +185,13 @@ class CreateBloc extends BlocBase {
     //}
 
     final expenditure = Expenditure(_category, _description, _date,
-        _locationName, _amount, _currency);
+        _locationName, _amount, _currency, _expenditureId);
 
     _loadingIndicatorController.sink.add(true);
     if (_expenditureId == null) {
       await _repository.createExpenditure(expenditure);
     } else {
-      await _repository.updateExpenditure(expenditure, _expenditureId);
+      await _repository.updateExpenditure(expenditure);
     }
     _loadingIndicatorController.sink.add(false);
     _navigationRouter.navigateToExpenditureHistoryScreen();

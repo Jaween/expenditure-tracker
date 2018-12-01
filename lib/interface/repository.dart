@@ -8,6 +8,6 @@ abstract class Repository {
   Repository(User user);
 
   Future<void> createExpenditure(Expenditure expenditure);
-  Future<void> updateExpenditure(Expenditure expenditure, String id);
+  Future<void> updateExpenditure(Expenditure expenditure);
   Future<void> deleteExpenditure(Expenditure expenditure);
 }

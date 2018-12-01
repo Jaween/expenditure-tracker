@@ -30,20 +30,12 @@ void main() {
       expect(bloc.currencyStream, emitsAnyOf(CreateBloc.currencies));
     });
 
-    test("constructior with initial expenditure should stream it", () {
+    test("constructior with initial expenditure should stream values", () {
       final mockNavigationRouter = MockNavigationRouter();
       final mockRepository = MockRepository();
       final mockLocation = MockLocation();
       final mockClock = MockClock();
-      final initialExpenditure = Expenditure(
-        categoryNameIconList[2].item1,
-        "Useful expenditure",
-        DateTime(2018, 03, 14, 12, 34, 0),
-        "Fancy restaurant",
-        "20",
-        "AUD",
-        "SomeId123",
-      );
+      final initialExpenditure = _createFakeExpenditure();
 
       final bloc = CreateBloc(mockNavigationRouter, mockRepository,
           mockLocation, mockClock, initialExpenditure);
@@ -58,7 +50,136 @@ void main() {
       expect(bloc.currencyStream, emits(initialExpenditure.currency));
     });
   });
+
+  group("CreateBloc editing form", () {
+    test("without initial expenditure should update streams", () {
+      final mockNavigationRouter = MockNavigationRouter();
+      final mockRepository = MockRepository();
+      final mockLocation = MockLocation();
+      final mockClock = MockClock();
+
+      final bloc = CreateBloc(mockNavigationRouter, mockRepository,
+        mockLocation, mockClock, null);
+
+      bloc.actionCategorySelect.add(categoryNameIconList[1].item1);
+      expect(bloc.categoryStream, emitsThrough(categoryNameIconList[1].item1));
+
+      bloc.actionDateUpdate.add(DateTime(2019, 12, 20));
+      expect(bloc.dateStream, emitsThrough(DateTime(2019, 12, 20)));
+
+      bloc.actionDescriptionUpdate.add("My item description");
+      expect(bloc.descriptionStream, emitsThrough("My item description"));
+
+      bloc.actionLocationUpdate.add("Dreamland");
+      expect(bloc.locationStream, emitsThrough("Dreamland"));
+
+      bloc.actionAmountUpdate.add("13.5");
+      expect(bloc.amountStream, emitsThrough("13.5"));
+
+      bloc.actionCategorySelect.add(CreateBloc.currencies[2]);
+      expect(bloc.categoryStream, emitsThrough(CreateBloc.currencies[2]));
+    });
+
+    test("with initial expenditure should update streams", () {
+      final mockNavigationRouter = MockNavigationRouter();
+      final mockRepository = MockRepository();
+      final mockLocation = MockLocation();
+      final mockClock = MockClock();
+      final initialExpenditure = _createFakeExpenditure();
+
+      final bloc = CreateBloc(mockNavigationRouter, mockRepository,
+        mockLocation, mockClock, initialExpenditure);
+
+      bloc.actionCategorySelect.add(categoryNameIconList[1].item1);
+      expect(bloc.categoryStream, emitsThrough(categoryNameIconList[1].item1));
+
+      bloc.actionDateUpdate.add(DateTime(2019, 12, 20));
+      expect(bloc.dateStream, emitsThrough(DateTime(2019, 12, 20)));
+
+      bloc.actionDescriptionUpdate.add("My item description");
+      expect(bloc.descriptionStream, emitsThrough("My item description"));
+
+      bloc.actionLocationUpdate.add("Dreamland");
+      expect(bloc.locationStream, emitsThrough("Dreamland"));
+
+      bloc.actionAmountUpdate.add("13.5");
+      expect(bloc.amountStream, emitsThrough("13.5"));
+
+      bloc.actionCategorySelect.add(CreateBloc.currencies[2]);
+      expect(bloc.categoryStream, emitsThrough(CreateBloc.currencies[2]));
+    });
+  });
+
+  group("CreateBloc saving form", () {
+    test("without initial expenditure should create new entry", () async {
+      final mockNavigationRouter = MockNavigationRouter();
+      final mockRepository = MockRepository();
+      final mockLocation = MockLocation();
+      final mockClock = MockClock();
+
+      final bloc = CreateBloc(mockNavigationRouter, mockRepository,
+        mockLocation, mockClock, null);
+      bloc.actionCategorySelect.add(categoryNameIconList[3].item1);
+      bloc.actionDateUpdate.add(DateTime(2018, 7, 6));
+      bloc.actionDescriptionUpdate.add("Teriyaki chicken roll");
+      bloc.actionLocationUpdate.add("Aka Sushi");
+      bloc.actionAmountUpdate.add("2.5");
+      bloc.actionCurrencyUpdate.add(CreateBloc.currencies[0]);
+      bloc.actionSave.add(null);
+
+      final expected = Expenditure(
+        categoryNameIconList[3].item1,
+        "Teriyaki chicken roll",
+        DateTime(2018, 7, 6),
+        "Aka Sushi",
+        "2.5",
+        CreateBloc.currencies[0]
+      );
+
+      await untilCalled(mockRepository.createExpenditure(any)).then((_) {
+        verify(mockRepository.createExpenditure(expected)).called(1);
+        verifyNever(mockRepository.updateExpenditure(any));
+      });
+    });
+
+    test("with initial expenditure should update entry", () async {
+      final mockNavigationRouter = MockNavigationRouter();
+      final mockRepository = MockRepository();
+      final mockLocation = MockLocation();
+      final mockClock = MockClock();
+      final initialExpenditure = _createFakeExpenditure();
+
+      final bloc = CreateBloc(mockNavigationRouter, mockRepository,
+        mockLocation, mockClock, initialExpenditure);
+      bloc.actionDescriptionUpdate.add("Wonderful new expenditure");
+      bloc.actionSave.add(null);
+
+      final expected = Expenditure(
+        categoryNameIconList[2].item1,
+        "Wonderful new expenditure",
+        DateTime(2018, 03, 14, 12, 34, 0),
+        "Fancy restaurant",
+        "20",
+        "AUD",
+        "SomeId123",
+      );
+      await untilCalled(mockRepository.updateExpenditure(any)).then((_) {
+        verify(mockRepository.updateExpenditure(expected)).called(1);
+        verifyNever(mockRepository.createExpenditure(any));
+      });
+    });
+  });
 }
+
+Expenditure _createFakeExpenditure() => Expenditure(
+  categoryNameIconList[2].item1,
+  "Great expenditure",
+  DateTime(2018, 03, 14, 12, 34, 0),
+  "Fancy restaurant",
+  "20",
+  "AUD",
+  "SomeId123",
+);
 
 class MockNavigationRouter extends Mock implements NavigationRouter {}
 
