@@ -20,7 +20,8 @@ class Expenditure {
     this.locationType,
     this.locationName,
     this.amount,
-    this.currency);
+    this.currency,
+    [this.id]);
 
   Expenditure.fromJson(this.id, Map<String, dynamic> map):
       category = map['category'],
