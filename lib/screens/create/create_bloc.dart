@@ -26,10 +26,6 @@ class CreateBloc extends BlocBase {
   String _formattedDate;
   String get formattedDate => _formattedDate;
 
-  int _latitude = 0;
-  int _longitude = 0;
-  String _locationType = "";
-
   String _locationName;
 
   String _amount;
@@ -106,9 +102,6 @@ class CreateBloc extends BlocBase {
       _description = initialExpenditure.description;
       _date = initialExpenditure.date;
       _formattedDate = _dateFormat.format(initialExpenditure.date);
-      _latitude = initialExpenditure.latitude;
-      _longitude = initialExpenditure.longitude;
-      _locationType = initialExpenditure.locationType;
       _locationName = initialExpenditure.locationName;
       _amount = initialExpenditure.amount;
       _currency = initialExpenditure.currency;
@@ -185,8 +178,8 @@ class CreateBloc extends BlocBase {
     //  return;
     //}
 
-    final expenditure = Expenditure(_category, _description, _date, _latitude,
-        _longitude, _locationType, _locationName, _amount, _currency);
+    final expenditure = Expenditure(_category, _description, _date,
+        _locationName, _amount, _currency);
 
     _loadingIndicatorController.sink.add(true);
     if (_expenditureId == null) {
