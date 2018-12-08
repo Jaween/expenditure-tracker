@@ -194,7 +194,7 @@ class CreateBloc extends BlocBase {
       await _repository.updateExpenditure(expenditure);
     }
     _loadingIndicatorController.sink.add(false);
-    _navigationRouter.navigateToExpenditureHistoryScreen();
+    _navigationRouter.navigateBack();
   }
 
   @override

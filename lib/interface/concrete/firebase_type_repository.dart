@@ -6,26 +6,18 @@ import 'package:rxdart/rxdart.dart';
 
 class FirebaseTypeRepository extends Repository {
 
+  final Firestore _firestore = Firestore.instance;
+  final _expenditures = BehaviorSubject<List<Expenditure>>();
+
   String _baseUri;
   String _expendituresUri;
 
-  final User _user;
-  final Firestore _firestore = Firestore.instance;
-
-  final _expenditures = BehaviorSubject<List<Expenditure>>();
-
-  FirebaseTypeRepository(this._user): super(_user) {
-    _baseUri = 'users/${_user.userId}';
-    _expendituresUri = '$_baseUri/expenditures';
-
-    _firestore.collection(_expendituresUri).snapshots().listen((data) {
-      print("User ${_user.userId} has ${data.documents.length} expenditure(s)");
-      final expendituresDownloaded = <Expenditure>[];
-      data.documents.forEach((snapshot) =>
-          expendituresDownloaded.add(Expenditure.fromJson(snapshot.documentID, snapshot.data)));
-      _expenditures.add(expendituresDownloaded);
-    });
+  FirebaseTypeRepository(User user) : super(user) {
+    _updateSignedInUser(user);
   }
+
+  @override
+  set user(User user) => _updateSignedInUser(user);
 
   @override
   Stream<List<Expenditure>> get expenditures => _expenditures;
@@ -49,5 +41,25 @@ class FirebaseTypeRepository extends Repository {
     await _firestore.collection(_expendituresUri)
         .document(expenditure.id)
         .delete();
+  }
+
+  _updateSignedInUser(User user) {
+    if (user == null) {
+      return;
+    }
+
+    _baseUri = 'users/${user.userId}';
+    _expendituresUri = '$_baseUri/expenditures';
+
+    _firestore.collection(_expendituresUri).snapshots().listen((data) {
+      final expendituresDownloaded = <Expenditure>[];
+      data.documents.forEach((snapshot) =>
+        expendituresDownloaded.add(Expenditure.fromJson(snapshot.documentID, snapshot.data)));
+      _expenditures.add(expendituresDownloaded);
+    });
+  }
+
+  void dispose() {
+    _expenditures.close();
   }
 }

@@ -22,6 +22,14 @@ class ExpenditureList extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text("Expenditrack"),
+        actions: <Widget>[
+          RaisedButton(
+            child: Text("Sign Out"),
+            onPressed: () {
+              expenditureBloc.signOutAction.add(null);
+            },
+          )
+        ],
       ),
       body: StreamBuilder<List<ExpenditureListItem>>(
           stream: expenditureBloc.items,
