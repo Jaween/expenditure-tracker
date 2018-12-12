@@ -24,7 +24,7 @@ class ExpenditureTrack extends StatefulWidget {
 
 class ExpenditureTrackState extends State<ExpenditureTrack>
     with SingleTickerProviderStateMixin {
-  UserAuth _userAuth;
+  FirebaseTypeUserAuth _userAuth;
   Repository _repository;
 
   TabController _tabController;
@@ -37,7 +37,6 @@ class ExpenditureTrackState extends State<ExpenditureTrack>
     _repository = FirebaseTypeRepository(null);
 
     _userAuth.currentUserStream().listen((user) => _repository.user = user);
-    _userAuth.signInAnonymously();
 
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
@@ -45,6 +44,12 @@ class ExpenditureTrackState extends State<ExpenditureTrack>
         _fabIndex = _tabController.index;
       });
     });
+  }
+
+  @override
+  void dispose() {
+    _userAuth.dispose();
+    super.dispose();
   }
 
   @override

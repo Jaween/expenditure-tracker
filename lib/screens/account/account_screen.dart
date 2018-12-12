@@ -27,7 +27,7 @@ class AccountScreen extends StatelessWidget {
     final photoUrl = user.photoUrl == null
       ? "http://fortunetech.com.bd/wp-content/uploads/2018/02/testmonial-default.png"
       : user.photoUrl;
-    final name = user.displayName == null ? "Expenditrack user" : user.displayName;
+    final name = (user.displayName == null || user.displayName.isEmpty) ? "Expenditrack user" : user.displayName;
     final accountBloc = BlocProvider.of<AccountBloc>(context);
 
     final widgets = <Widget>[
@@ -77,7 +77,18 @@ class AccountScreen extends StatelessWidget {
 
     if (user.isAnonymous) {
       widgets.add(_buildRow(context, Icons.link, "Link account", "", () {
-        accountBloc.actionLinkAccount.add(null);
+        showDialog(
+          context: context,
+          builder: (context) {
+            return SimpleDialog(
+              title: Text("Link account"),
+              children: <Widget>[
+                _LinkAccountDialog(accountBloc, () => Navigator.pop(context)),
+              ],
+            );
+          }
+        );
+        //accountBloc.actionLinkAccount.add(null);
       }));
     } else {
       widgets.addAll(_buildLinkedAccounts(context, user.linkedProviderIds));
@@ -195,6 +206,48 @@ class AccountScreen extends StatelessWidget {
           ],
         )
       ),
+    );
+  }
+}
+
+class _LinkAccountDialog extends StatelessWidget {
+  final AccountBloc _accountBloc;
+  final Function _dismiss;
+
+  _LinkAccountDialog(this._accountBloc, this._dismiss);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.center ,
+      children: <Widget>[
+        Padding(
+          padding: EdgeInsets.all(8.0),
+          child: SizedBox(
+            width: 164,
+            child: RaisedButton(
+              child: Text("Link with Facebook"),
+              color: Colors.blue,
+              onPressed: () {},
+            ),
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.all(8.0),
+          child: SizedBox(
+            width: 164,
+            child: RaisedButton(
+              child: Text("Link with Google"),
+              color: Colors.red,
+              onPressed: () {
+                _accountBloc.actionLinkAccountGoogle.add(null);
+                _dismiss();
+              }
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

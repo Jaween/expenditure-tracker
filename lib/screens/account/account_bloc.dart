@@ -11,8 +11,8 @@ class AccountBloc extends BlocBase {
 
   Stream<User> get currentUserStream => _userAuth.currentUserStream();
 
-  final _actionLinkAccount = BehaviorSubject<void>();
-  Sink<void> get actionLinkAccount => _actionLinkAccount.sink;
+  final _actionLinkAccountGoogle = BehaviorSubject<void>();
+  Sink<void> get actionLinkAccountGoogle => _actionLinkAccountGoogle.sink;
 
   final _actionUnlinkAccount = BehaviorSubject<void>();
   Sink<void> get actionUnlinkAccount => _actionUnlinkAccount.sink;
@@ -21,14 +21,14 @@ class AccountBloc extends BlocBase {
   Sink<void> get signOutAction => _signOutAction.sink;
 
   AccountBloc(this._navigationRouter, this._userAuth) {
-    _actionLinkAccount.stream.listen((_) {
-      _navigationRouter.navigateToLoginScreen();
+    _actionLinkAccountGoogle.stream.listen((_) async {
+      await _userAuth.linkWithGoogle();
     });
 
     _actionUnlinkAccount.stream.listen((_) {
-      _userAuth.currentUser().then((user) {
+      /*_userAuth.currentUser().then((user) {
         // TODO(jaween): firebase_auth doesn't yet support unlinking from providers
-      });
+      });*/
     });
 
     _signOutAction.stream.listen((_) async {
@@ -39,7 +39,7 @@ class AccountBloc extends BlocBase {
 
   @override
   void dispose() {
-    _actionLinkAccount.close();
+    _actionLinkAccountGoogle.close();
     _actionUnlinkAccount.close();
     _signOutAction.close();
   }

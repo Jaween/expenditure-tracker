@@ -4,22 +4,47 @@ import 'package:expenditure_tracker/interface/user_auth.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:rxdart/rxdart.dart';
+
+typedef Future<FirebaseUser> _SignInMethod();
 
 /// Firebase implementation of the user authentication service.
 class FirebaseTypeUserAuth extends UserAuth {
   final _firebaseAuth = FirebaseAuth.instance;
   final _googleAuth = _GoogleAuth();
 
-  @override
-  Stream<User> currentUserStream() => currentUser().asStream();
+  final _currentUserController = BehaviorSubject<User>();
 
-  @override
-  Future<User> currentUser() async => FirebaseTypeUser(await _firebaseAuth.currentUser());
+  FirebaseTypeUserAuth() {
+    init();
+  }
 
-  @override
-  Future<User> signInAnonymously() async {
-    final firebaseUser = await _firebaseAuth.signInAnonymously();
+  void dispose() {
+    _currentUserController.close();
+  }
+
+  void init() async {
+    _updateUser(() async {
+      final firebaseUser = await _firebaseAuth.currentUser();
+      if (firebaseUser == null) {
+        await signInAnonymously();
+      }
+      return await _firebaseAuth.currentUser();
+    });
+  }
+
+  Future<User> _updateUser(_SignInMethod signInMethod) async {
+    final firebaseUser = await signInMethod();
+    _currentUserController.sink.add(FirebaseTypeUser(firebaseUser));
     return FirebaseTypeUser(firebaseUser);
+  }
+
+  @override
+  Stream<User> currentUserStream() => _currentUserController.stream;
+
+  @override
+  Future<User> signInAnonymously() {
+    return _updateUser(() => _firebaseAuth.signInAnonymously());
   }
 
   @override
@@ -29,19 +54,19 @@ class FirebaseTypeUserAuth extends UserAuth {
   }
 
   @override
-  Future<User> signInWithGoogle() async {
-    final firebaseUser = await _googleAuth.signIn(_firebaseAuth);
-    return FirebaseTypeUser(firebaseUser);
+  Future<User> signInWithGoogle() {
+    return _updateUser(() => _googleAuth.signIn(_firebaseAuth));
   }
 
   @override
-  Future<User> linkWithGoogle() async {
-    final credentials = await _googleAuth.credentials(_firebaseAuth);
-    final firebaseUser = await _firebaseAuth.linkWithGoogleCredential(
+  Future<User> linkWithGoogle() {
+    return _updateUser(() async {
+      final credentials = await _googleAuth.credentials(_firebaseAuth);
+      return await _firebaseAuth.linkWithGoogleCredential(
         idToken: credentials.idToken,
         accessToken: credentials.accessToken
-    );
-    return FirebaseTypeUser(firebaseUser);
+      );
+    });
   }
 
   @override
