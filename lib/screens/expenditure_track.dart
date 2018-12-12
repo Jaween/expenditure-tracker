@@ -5,6 +5,8 @@ import 'package:expenditure_tracker/interface/expenditure.dart';
 import 'package:expenditure_tracker/interface/navigation_router.dart';
 import 'package:expenditure_tracker/interface/repository.dart';
 import 'package:expenditure_tracker/interface/user_auth.dart';
+import 'package:expenditure_tracker/screens/account/account_bloc.dart';
+import 'package:expenditure_tracker/screens/account/account_screen.dart';
 import 'package:expenditure_tracker/screens/bloc_provider.dart';
 import 'package:expenditure_tracker/screens/create/create_bloc.dart';
 import 'package:expenditure_tracker/screens/create/create_screen.dart';
@@ -20,9 +22,14 @@ class ExpenditureTrack extends StatefulWidget {
   State<StatefulWidget> createState() => ExpenditureTrackState();
 }
 
-class ExpenditureTrackState extends State<ExpenditureTrack> {
+class ExpenditureTrackState extends State<ExpenditureTrack>
+    with SingleTickerProviderStateMixin {
   UserAuth _userAuth;
   Repository _repository;
+
+  TabController _tabController;
+  int _fabIndex = 0;
+
   @override
   void initState() {
     super.initState();
@@ -30,6 +37,14 @@ class ExpenditureTrackState extends State<ExpenditureTrack> {
     _repository = FirebaseTypeRepository(null);
 
     _userAuth.currentUserStream().listen((user) => _repository.user = user);
+    _userAuth.signInAnonymously();
+
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      setState(() {
+        _fabIndex = _tabController.index;
+      });
+    });
   }
 
   @override
@@ -40,36 +55,16 @@ class ExpenditureTrackState extends State<ExpenditureTrack> {
         brightness: Brightness.dark,
       ),
       home: Builder(
-        builder: (BuildContext context) {
-          final navigationRouter = _createNavigationRouter(context);
-          return BlocProvider<LoginBloc>(
-            blocBuilder: () {
-              return LoginBloc(_userAuth, navigationRouter);
-            },
-            child: LoginScreen()
-          );
-        },
+        builder: (BuildContext context) => _createHub(context),
       ),
     );
   }
 
-  void _navigateToExpenditureHistory(BuildContext context) {
+  void _navigateToHubScreen(BuildContext context) {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (BuildContext context) {
-          final navigationRouter = _createNavigationRouter(context);
-          return BlocProvider<ExpenditureHistoryBloc>(
-            blocBuilder: () {
-              return ExpenditureHistoryBloc(
-                navigationRouter,
-                _repository,
-                _userAuth,
-              );
-            },
-            child: ExpenditureHistoryScreen(),
-          );
-        }
+        builder: (BuildContext context) => _createHub(context),
       ),
     );
   }
@@ -106,26 +101,79 @@ class ExpenditureTrackState extends State<ExpenditureTrack> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (BuildContext context) {
-          return BlocProvider<LoginBloc>(
-            blocBuilder: () {
-              final navigationRouter = _createNavigationRouter(context);
-              return LoginBloc(
-                _userAuth,
-                navigationRouter,
-              );
-            },
-            child: LoginScreen(),
-          );
-        },
+        builder: (BuildContext context) => _createLoginScreen(context),
       ),
+    );
+  }
+
+  Widget _createHub(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Expenditrack"),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: <Widget>[
+            Tab(text: "History",),
+            Tab(text: "Account"),
+          ],
+        ),
+      ),
+      floatingActionButton: _fabIndex != 0 ? null : FloatingActionButton(
+        onPressed: () {},
+        child: Icon(Icons.add),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _createExpenditureHistory(context),
+          _createAccountScreen(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _createExpenditureHistory(BuildContext context) {
+    final navigationRouter = _createNavigationRouter(context);
+    return BlocProvider<ExpenditureHistoryBloc>(
+      blocBuilder: () {
+        return ExpenditureHistoryBloc(
+          navigationRouter,
+          _repository,
+        );
+      },
+      child: ExpenditureHistoryScreen(),
+    );
+  }
+
+  Widget _createAccountScreen(BuildContext context) {
+    final navigationRouter = _createNavigationRouter(context);
+    return BlocProvider<AccountBloc>(
+      blocBuilder: () {
+        return AccountBloc(
+          navigationRouter,
+          _userAuth
+        );
+      },
+      child: AccountScreen()
+    );
+  }
+
+  Widget _createLoginScreen(BuildContext context) {
+    final navigationRouter = _createNavigationRouter(context);
+    return BlocProvider<LoginBloc>(
+      blocBuilder: () {
+        return LoginBloc(
+          _userAuth,
+          navigationRouter);
+      },
+      child: LoginScreen()
     );
   }
 
   NavigationRouter _createNavigationRouter(BuildContext context) {
     return NavigationRouter(
       onNavigateBack: () => Navigator.of(context).pop(),
-      onNavigateToExpenditureHistoryScreen: () => _navigateToExpenditureHistory(context),
+      onNavigateToHubScreen: () => _navigateToHubScreen(context),
       onNavigateToCreateScreen: (expenditure) => _navigateToCreateScreen(context, expenditure),
       onNavigateToLoginScreen: () => _navigateToLoginScreen(context),
     );

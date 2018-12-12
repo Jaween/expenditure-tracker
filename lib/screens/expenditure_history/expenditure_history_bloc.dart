@@ -12,7 +12,6 @@ class ExpenditureHistoryBloc extends BlocBase {
   final NavigationRouter _navigationRouter;
 
   final Repository _repository;
-  final UserAuth _userAuth;
 
   final _items = BehaviorSubject<List<ExpenditureListItem>>();
   Stream<List<ExpenditureListItem>> get items => _items.stream;
@@ -26,10 +25,7 @@ class ExpenditureHistoryBloc extends BlocBase {
   final _deleteExpenditureAction = StreamController<Expenditure>();
   Sink<Expenditure> get deleteExpenditureAction => _deleteExpenditureAction.sink;
 
-  final _signOutAction = StreamController<void>();
-  Sink<void> get signOutAction => _signOutAction.sink;
-
-  ExpenditureHistoryBloc(this._navigationRouter, this._repository, this._userAuth) {
+  ExpenditureHistoryBloc(this._navigationRouter, this._repository) {
     _repository.expenditures.listen((expenditures) {
       var reverseSortedExpenditures = List<Expenditure>.from(expenditures, growable: false);
       reverseSortedExpenditures.sort((Expenditure a, Expenditure b) => -a.date.compareTo(b.date));
@@ -47,11 +43,6 @@ class ExpenditureHistoryBloc extends BlocBase {
 
     _deleteExpenditureAction.stream.listen(
         (expenditure) => _repository.deleteExpenditure(expenditure));
-
-    _signOutAction.stream.listen((_) async {
-      await _userAuth.signOut();
-      _navigationRouter.navigateToLoginScreen();
-    });
   }
 
   /// Creates a list of expenditures, separated with items holding the date of those expenditures.
@@ -79,7 +70,6 @@ class ExpenditureHistoryBloc extends BlocBase {
     _createExpenditureAction.close();
     _updateExpenditureAction.close();
     _deleteExpenditureAction.close();
-    _signOutAction.close();
   }
 }
 

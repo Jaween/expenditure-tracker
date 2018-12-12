@@ -40,7 +40,7 @@ class LoginBloc extends BlocBase {
     final user = await signInMethod();
     if (user != null) {
       _userController.sink.add(user);
-      _navigationRouter.navigateToExpenditureHistoryScreen();
+      _navigationRouter.navigateToHubScreen();
     }
   }
 

@@ -19,34 +19,18 @@ class ExpenditureList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final expenditureBloc = BlocProvider.of<ExpenditureHistoryBloc>(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Expenditrack"),
-        actions: <Widget>[
-          RaisedButton(
-            child: Text("Sign Out"),
-            onPressed: () {
-              expenditureBloc.signOutAction.add(null);
-            },
-          )
-        ],
-      ),
-      body: StreamBuilder<List<ExpenditureListItem>>(
-          stream: expenditureBloc.items,
-          builder: (BuildContext context, AsyncSnapshot<List<ExpenditureListItem>> snapshot) {
-            if (!snapshot.hasData) return _buildLoadingWidget();
-            if (snapshot.data.isEmpty) return _buildEmptyListWidget(context);
-            return ListView.builder(
-              itemCount: snapshot.data.length,
-              itemBuilder: (context, pos) => snapshot.data[pos].date != null
-                  ? _buildDateItem(context, snapshot.data[pos].date)
-                  : _buildExpenditureItem(context, snapshot.data[pos].expenditure),
-            );
-          }),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => expenditureBloc.createExpenditureAction.add(null),
-        child: Icon(Icons.add),
-      ),
+    return StreamBuilder<List<ExpenditureListItem>>(
+      stream: expenditureBloc.items,
+      builder: (BuildContext context, AsyncSnapshot<List<ExpenditureListItem>> snapshot) {
+        if (!snapshot.hasData) return _buildLoadingWidget();
+        if (snapshot.data.isEmpty) return _buildEmptyListWidget(context);
+        return ListView.builder(
+          itemCount: snapshot.data.length,
+          itemBuilder: (context, pos) => snapshot.data[pos].date != null
+              ? _buildDateItem(context, snapshot.data[pos].date)
+              : _buildExpenditureItem(context, snapshot.data[pos].expenditure),
+        );
+      }
     );
   }
 
