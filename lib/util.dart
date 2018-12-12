@@ -15,3 +15,5 @@ String formatDDMMYYYY(DateTime dateTime) {
   }
   return _dateFormatter.format(dateTime);
 }
+
+bool notNull(Object o) => o != null;

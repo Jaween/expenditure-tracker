@@ -6,5 +6,6 @@ abstract class UserAuth {
   Future<User> signInAnonymously();
   Future<User> signInWithEmailAndPassword(String username, String password);
   Future<User> signInWithGoogle();
+  Future<void> linkWithGoogle();
   Future<void> signOut();
 }

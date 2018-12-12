@@ -35,6 +35,16 @@ class FirebaseTypeUserAuth extends UserAuth {
   }
 
   @override
+  Future<User> linkWithGoogle() async {
+    final credentials = await _googleAuth.credentials(_firebaseAuth);
+    final firebaseUser = await _firebaseAuth.linkWithGoogleCredential(
+        idToken: credentials.idToken,
+        accessToken: credentials.accessToken
+    );
+    return FirebaseTypeUser(firebaseUser);
+  }
+
+  @override
   Future<void> signOut() async {
     final firebaseUser = await _firebaseAuth.currentUser();
     print("${firebaseUser.providerId}");
@@ -55,8 +65,7 @@ class _GoogleAuth {
   Future<FirebaseUser> signIn(FirebaseAuth _firebaseAuth) async {
     FirebaseUser user;
     try {
-      final googleSignInAccount = await _googleSignIn.signIn();
-      final authentication = await googleSignInAccount.authentication;
+      final authentication = await credentials(_firebaseAuth);
       user = await _firebaseAuth.signInWithGoogle(
         idToken: authentication.idToken,
         accessToken: authentication.accessToken
@@ -65,6 +74,11 @@ class _GoogleAuth {
       print(error);
     }
     return user;
+  }
+
+  Future<GoogleSignInAuthentication> credentials(FirebaseAuth _firebaseAuth) async {
+    final googleSignInAccount = await _googleSignIn.signIn();
+    return await googleSignInAccount.authentication;
   }
 
   /// Signs out of the current signed in Google account.
