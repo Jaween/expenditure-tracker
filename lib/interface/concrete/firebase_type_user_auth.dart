@@ -76,8 +76,6 @@ class FirebaseTypeUserAuth extends UserAuth {
     return _updateUser(() async {
       await _firebaseAuth.signOut();
       await _googleAuth.signOut();
-      // TODO(jaween): Replace with _navigationRouter.restart() when available
-      await signInAnonymously();
     });
   }
 
@@ -87,8 +85,6 @@ class FirebaseTypeUserAuth extends UserAuth {
       // TODO(jaween): Delete associated user content too
       final currentUser = await _firebaseAuth.currentUser();
       await currentUser.delete();
-      // TODO(jaween): Replace with _navigationRouter.restart() when available
-      await signInAnonymously();
     });
   }
 

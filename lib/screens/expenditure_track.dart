@@ -4,7 +4,6 @@ import 'package:expenditure_tracker/interface/concrete/geolocator_type_location.
 import 'package:expenditure_tracker/interface/expenditure.dart';
 import 'package:expenditure_tracker/interface/navigation_router.dart';
 import 'package:expenditure_tracker/interface/repository.dart';
-import 'package:expenditure_tracker/interface/user_auth.dart';
 import 'package:expenditure_tracker/screens/account/account_bloc.dart';
 import 'package:expenditure_tracker/screens/account/account_screen.dart';
 import 'package:expenditure_tracker/screens/bloc_provider.dart';
@@ -14,15 +13,25 @@ import 'package:expenditure_tracker/screens/expenditure_history/expenditure_hist
 import 'package:expenditure_tracker/screens/expenditure_history/expenditure_history_screen.dart';
 import 'package:expenditure_tracker/screens/login/login_bloc.dart';
 import 'package:expenditure_tracker/screens/login/login_screen.dart';
+import 'package:expenditure_tracker/widget/restart_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:quiver/time.dart';
 
-class ExpenditureTrack extends StatefulWidget {
+class ExpenditureTrack extends StatelessWidget {
   @override
-  State<StatefulWidget> createState() => ExpenditureTrackState();
+  Widget build(BuildContext context) {
+    return RestartWidget(
+      child: ExpenditureTrackBody(),
+    );
+  }
 }
 
-class ExpenditureTrackState extends State<ExpenditureTrack>
+class ExpenditureTrackBody extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => ExpenditureTrackBodyState();
+}
+
+class ExpenditureTrackBodyState extends State<ExpenditureTrackBody>
     with SingleTickerProviderStateMixin {
   FirebaseTypeUserAuth _userAuth;
   Repository _repository;
@@ -111,6 +120,14 @@ class ExpenditureTrackState extends State<ExpenditureTrack>
     );
   }
 
+  void _restart(BuildContext context) {
+    setState(() {
+      final RestartWidgetState restartWidgetState =
+          context.ancestorStateOfType(const TypeMatcher<RestartWidgetState>());
+      restartWidgetState.restart();
+    });
+  }
+
   Widget _createHub(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -181,6 +198,7 @@ class ExpenditureTrackState extends State<ExpenditureTrack>
       onNavigateToHubScreen: () => _navigateToHubScreen(context),
       onNavigateToCreateScreen: (expenditure) => _navigateToCreateScreen(context, expenditure),
       onNavigateToLoginScreen: () => _navigateToLoginScreen(context),
+      onRestart: () => _restart(context),
     );
   }
 }

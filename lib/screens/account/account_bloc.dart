@@ -36,11 +36,12 @@ class AccountBloc extends BlocBase {
 
     _signOutAction.stream.listen((_) async {
       await _userAuth.signOut();
+      _navigationRouter.restartApp();
     });
 
     _deleteAccountAction.stream.listen((_) async {
       await _userAuth.deleteAccount();
-      // TODO(jaween): Add _navigationRoute.restart();
+      _navigationRouter.restartApp();
     });
   }
 
