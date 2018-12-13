@@ -6,7 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:rxdart/rxdart.dart';
 
-typedef Future<FirebaseUser> _SignInMethod();
+typedef Future<FirebaseUser> _UserUpdater();
 
 /// Firebase implementation of the user authentication service.
 class FirebaseTypeUserAuth extends UserAuth {
@@ -33,8 +33,9 @@ class FirebaseTypeUserAuth extends UserAuth {
     });
   }
 
-  Future<User> _updateUser(_SignInMethod signInMethod) async {
-    final firebaseUser = await signInMethod();
+  Future<User> _updateUser(_UserUpdater userUpdater) async {
+    await userUpdater();
+    final firebaseUser = await _firebaseAuth.currentUser();
     _currentUserController.sink.add(FirebaseTypeUser(firebaseUser));
     return FirebaseTypeUser(firebaseUser);
   }
@@ -55,6 +56,7 @@ class FirebaseTypeUserAuth extends UserAuth {
 
   @override
   Future<User> signInWithGoogle() {
+    // TODO(jaween): Merge anonymous account if expenditures available
     return _updateUser(() => _googleAuth.signIn(_firebaseAuth));
   }
 
@@ -71,18 +73,35 @@ class FirebaseTypeUserAuth extends UserAuth {
 
   @override
   Future<void> signOut() async {
-    final firebaseUser = await _firebaseAuth.currentUser();
-    print("${firebaseUser.providerId}");
-    await _firebaseAuth.signOut();
-    await _googleAuth.signOut();
+    return _updateUser(() async {
+      await _firebaseAuth.signOut();
+      await _googleAuth.signOut();
+      // TODO(jaween): Replace with _navigationRouter.restart() when available
+      await signInAnonymously();
+    });
   }
+
+  @override
+  Future<void> deleteAccount() async {
+    return _updateUser(() async {
+      // TODO(jaween): Delete associated user content too
+      final currentUser = await _firebaseAuth.currentUser();
+      await currentUser.delete();
+      // TODO(jaween): Replace with _navigationRouter.restart() when available
+      await signInAnonymously();
+    });
+  }
+
+
 }
 
 /// Handles Google specific account management.
 class _GoogleAuth {
   final _googleSignIn = GoogleSignIn(
     scopes:[
-    'email',
+      "email",
+      "profile",
+      "https://www.googleapis.com/auth/userinfo.profile",
     ]
   );
 

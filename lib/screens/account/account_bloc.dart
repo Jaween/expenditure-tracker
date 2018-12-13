@@ -20,6 +20,9 @@ class AccountBloc extends BlocBase {
   final _signOutAction = BehaviorSubject<void>();
   Sink<void> get signOutAction => _signOutAction.sink;
 
+  final _deleteAccountAction = BehaviorSubject<void>();
+  Sink<void> get deleteAccountAction => _deleteAccountAction.sink;
+
   AccountBloc(this._navigationRouter, this._userAuth) {
     _actionLinkAccountGoogle.stream.listen((_) async {
       await _userAuth.linkWithGoogle();
@@ -33,7 +36,11 @@ class AccountBloc extends BlocBase {
 
     _signOutAction.stream.listen((_) async {
       await _userAuth.signOut();
-      _navigationRouter.navigateToLoginScreen();
+    });
+
+    _deleteAccountAction.stream.listen((_) async {
+      await _userAuth.deleteAccount();
+      // TODO(jaween): Add _navigationRoute.restart();
     });
   }
 
@@ -42,5 +49,6 @@ class AccountBloc extends BlocBase {
     _actionLinkAccountGoogle.close();
     _actionUnlinkAccount.close();
     _signOutAction.close();
+    _deleteAccountAction.close();
   }
 }

@@ -7,10 +7,10 @@ class FirebaseTypeUser extends User {
   FirebaseTypeUser(this._firebaseUser);
 
   @override
-  String get displayName => _firebaseUser.displayName;
+  String get userId => _firebaseUser.uid;
 
   @override
-  String get userId => _firebaseUser.uid;
+  String get displayName => _firebaseUser.displayName;
 
   @override
   bool get isAnonymous => _firebaseUser.isAnonymous;

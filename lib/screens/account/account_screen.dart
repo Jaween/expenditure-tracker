@@ -27,7 +27,10 @@ class AccountScreen extends StatelessWidget {
     final photoUrl = user.photoUrl == null
       ? "http://fortunetech.com.bd/wp-content/uploads/2018/02/testmonial-default.png"
       : user.photoUrl;
-    final name = (user.displayName == null || user.displayName.isEmpty) ? "Expenditrack user" : user.displayName;
+    final displayName = user.displayName == null || user.displayName.isEmpty
+      ? "Expenditrack user"
+      : user.displayName;
+    final name = "${user.isAnonymous ? "Guest user" : displayName}";
     final accountBloc = BlocProvider.of<AccountBloc>(context);
 
     final widgets = <Widget>[
@@ -76,31 +79,61 @@ class AccountScreen extends StatelessWidget {
     ];
 
     if (user.isAnonymous) {
-      widgets.add(_buildRow(context, Icons.link, "Link account", "", () {
-        showDialog(
-          context: context,
-          builder: (context) {
-            return SimpleDialog(
-              title: Text("Link account"),
-              children: <Widget>[
-                _LinkAccountDialog(accountBloc, () => Navigator.pop(context)),
-              ],
-            );
-          }
-        );
-        //accountBloc.actionLinkAccount.add(null);
-      }));
+      widgets.addAll([
+        _buildRow(context, Icons.link, "Link account", "", () {
+          showDialog(
+            context: context,
+            builder: (context) {
+              return SimpleDialog(
+                title: Text("Link account"),
+                children: <Widget>[
+                  _LinkAccountDialog(accountBloc, () => Navigator.pop(context)),
+                ],
+              );
+            }
+          );
+          //accountBloc.actionLinkAccount.add(null);
+        }),
+      ]);
     } else {
       widgets.addAll(_buildLinkedAccounts(context, user.linkedProviderIds));
+    }
+
+    widgets.add(_buildHeader(context, "General"));
+    if (!user.isAnonymous) {
       widgets.addAll(
         <Widget>[
-          _buildHeader(context, "General"),
           _buildRow(context, Icons.exit_to_app, "Sign out", "", () {
-            //return accountBloc.signOutAction.add(null);
+            return accountBloc.signOutAction.add(null);
           }),
         ]
       );
     }
+
+    widgets.add(_buildRow(context, Icons.remove_circle, "Delete account", "", () {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("Delete account"),
+            content: Text("You will lose your expenditure history."),
+            actions: <Widget>[
+              FlatButton(
+                child: Text("Cancel"),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              FlatButton(
+                child: Text("Delete"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  accountBloc.deleteAccountAction.add(null);
+                },
+              )
+            ],
+          );
+        }
+      );
+    }));
 
     return ListView(
       shrinkWrap: true,
