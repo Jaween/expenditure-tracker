@@ -13,20 +13,13 @@ class LoginBloc extends BlocBase {
   final _userController = BehaviorSubject<User>();
   Stream<User> get userStream => _userController.stream;
 
-  final _actionSignInAnonymouslyController = BehaviorSubject<void>();
-  Sink<void> get actionSignInAnonymously => _actionSignInAnonymouslyController.sink;
-
   final _actionSignInWithGoogleController = BehaviorSubject<void>();
-  Sink<void> get actionSignInWithGoogle => _actionSignInAnonymouslyController.sink;
+  Sink<void> get actionSignInWithGoogle => _actionSignInWithGoogleController.sink;
 
   final _actionSignOutController = BehaviorSubject<void>();
   Sink<void> get actionSignOut => _actionSignOutController.sink;
 
   LoginBloc(this._userAuth, this._navigationRouter) {
-    _actionSignInAnonymouslyController.listen((_) {
-      _performSignIn(_userAuth.signInAnonymously);
-    });
-
     _actionSignInWithGoogleController.listen((_) {
       _performSignIn(_userAuth.signInWithGoogle);
     });
@@ -47,7 +40,6 @@ class LoginBloc extends BlocBase {
   @override
   void dispose() {
     _userController.close();
-    _actionSignInAnonymouslyController.close();
     _actionSignInWithGoogleController.close();
     _actionSignOutController.close();
   }

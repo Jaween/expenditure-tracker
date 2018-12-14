@@ -7,5 +7,5 @@ abstract class UserAuth {
   Future<User> signInWithGoogle();
   Future<void> linkWithGoogle();
   Future<void> signOut();
-  Future<void> deleteAccount();
+  Future<void> deleteCurrentUser();
 }

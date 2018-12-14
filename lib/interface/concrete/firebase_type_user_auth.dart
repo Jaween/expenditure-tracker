@@ -36,8 +36,9 @@ class FirebaseTypeUserAuth extends UserAuth {
   Future<User> _updateUser(_UserUpdater userUpdater) async {
     await userUpdater();
     final firebaseUser = await _firebaseAuth.currentUser();
-    _currentUserController.sink.add(FirebaseTypeUser(firebaseUser));
-    return FirebaseTypeUser(firebaseUser);
+    final firebaseTypeUser = FirebaseTypeUser(firebaseUser);
+    _currentUserController.sink.add(firebaseTypeUser);
+    return firebaseTypeUser;
   }
 
   @override
@@ -57,7 +58,17 @@ class FirebaseTypeUserAuth extends UserAuth {
   @override
   Future<User> signInWithGoogle() {
     // TODO(jaween): Merge anonymous account if expenditures available
-    return _updateUser(() => _googleAuth.signIn(_firebaseAuth));
+    return _updateUser(() async {
+      final oldUser = await _firebaseAuth.currentUser();
+      final newUser = await _googleAuth.signIn(_firebaseAuth);
+      if (newUser.uid != oldUser.uid && oldUser.isAnonymous){
+        //print("New user has UID ${newUser.uid}, old was ${oldUser.uid}");
+        // TODO(jaween): Delete old user's associated data too
+        //print("Deleting ${oldUser.uid}, not ${newUser.uid}");
+        //await oldUser.delete();
+        // TODO(jaween): https://github.com/flutter/flutter/issues/25316 is blocking this
+      }
+    });
   }
 
   @override
@@ -80,15 +91,13 @@ class FirebaseTypeUserAuth extends UserAuth {
   }
 
   @override
-  Future<void> deleteAccount() async {
+  Future<void> deleteCurrentUser() async {
     return _updateUser(() async {
       // TODO(jaween): Delete associated user content too
       final currentUser = await _firebaseAuth.currentUser();
       await currentUser.delete();
     });
   }
-
-
 }
 
 /// Handles Google specific account management.
@@ -103,17 +112,16 @@ class _GoogleAuth {
 
   /// Signs in to a Google account and returns the associated FirebaseUser.
   Future<FirebaseUser> signIn(FirebaseAuth _firebaseAuth) async {
-    FirebaseUser user;
     try {
       final authentication = await credentials(_firebaseAuth);
-      user = await _firebaseAuth.signInWithGoogle(
+      return await _firebaseAuth.signInWithGoogle(
         idToken: authentication.idToken,
         accessToken: authentication.accessToken
       );
     } catch (error) {
       print(error);
+      return null;
     }
-    return user;
   }
 
   Future<GoogleSignInAuthentication> credentials(FirebaseAuth _firebaseAuth) async {

@@ -11,19 +11,26 @@ class AccountBloc extends BlocBase {
 
   Stream<User> get currentUserStream => _userAuth.currentUserStream();
 
+  final _actionSignIn = BehaviorSubject<void>();
+  Sink<void> get actionSignIn => _actionSignIn.sink;
+
   final _actionLinkAccountGoogle = BehaviorSubject<void>();
   Sink<void> get actionLinkAccountGoogle => _actionLinkAccountGoogle.sink;
 
   final _actionUnlinkAccount = BehaviorSubject<void>();
   Sink<void> get actionUnlinkAccount => _actionUnlinkAccount.sink;
 
-  final _signOutAction = BehaviorSubject<void>();
-  Sink<void> get signOutAction => _signOutAction.sink;
+  final _actionSignOut = BehaviorSubject<void>();
+  Sink<void> get actionSignOut => _actionSignOut.sink;
 
-  final _deleteAccountAction = BehaviorSubject<void>();
-  Sink<void> get deleteAccountAction => _deleteAccountAction.sink;
+  final _actionDeleteAccount = BehaviorSubject<void>();
+  Sink<void> get actionDeleteAccount => _actionDeleteAccount.sink;
 
   AccountBloc(this._navigationRouter, this._userAuth) {
+    _actionSignIn.stream.listen((_) {
+      _navigationRouter.navigateToLoginScreen();
+    });
+
     _actionLinkAccountGoogle.stream.listen((_) async {
       await _userAuth.linkWithGoogle();
     });
@@ -34,22 +41,23 @@ class AccountBloc extends BlocBase {
       });*/
     });
 
-    _signOutAction.stream.listen((_) async {
+    _actionSignOut.stream.listen((_) async {
       await _userAuth.signOut();
       _navigationRouter.restartApp();
     });
 
-    _deleteAccountAction.stream.listen((_) async {
-      await _userAuth.deleteAccount();
+    _actionDeleteAccount.stream.listen((_) async {
+      await _userAuth.deleteCurrentUser();
       _navigationRouter.restartApp();
     });
   }
 
   @override
   void dispose() {
+    _actionSignIn.close();
     _actionLinkAccountGoogle.close();
     _actionUnlinkAccount.close();
-    _signOutAction.close();
-    _deleteAccountAction.close();
+    _actionSignOut.close();
+    _actionDeleteAccount.close();
   }
 }

@@ -57,18 +57,29 @@ class AccountScreen extends StatelessWidget {
           ),
         ),
       ),
-      Center(
-        child: Padding(
-          padding: EdgeInsets.only(bottom: 16.0),
+      Padding(
+        padding: EdgeInsets.only(bottom: 4),
+        child: Center(
           child: Text(
             name,
             style: Theme.of(context).textTheme.headline,
           ),
         ),
       ),
+      user.isAnonymous
+        ? Padding(
+            padding: EdgeInsets.symmetric(vertical: 4),
+            child: Center(
+              child: RaisedButton(
+                child: Text("Sign in".toUpperCase()),
+                onPressed: () => accountBloc.actionSignIn.add(null),
+              ),
+            ),
+          )
+        : null,
       Center(
         child: Padding(
-          padding: EdgeInsets.only(bottom: 16.0),
+          padding: EdgeInsets.only(top: 4, bottom: 16),
           child: Text(
             user.userId,
             style: Theme.of(context).textTheme.body1,
@@ -104,13 +115,16 @@ class AccountScreen extends StatelessWidget {
       widgets.addAll(
         <Widget>[
           _buildRow(context, Icons.exit_to_app, "Sign out", "", () {
-            return accountBloc.signOutAction.add(null);
+            return accountBloc.actionSignOut.add(null);
           }),
         ]
       );
     }
 
-    widgets.add(_buildRow(context, Icons.remove_circle, "Delete account", "", () {
+    final deleteRowMessage = user.isAnonymous
+      ? "Delete guest account"
+      : "Delete account";
+    widgets.add(_buildRow(context, Icons.remove_circle, deleteRowMessage, "", () {
       showDialog(
         context: context,
         builder: (context) {
@@ -126,7 +140,7 @@ class AccountScreen extends StatelessWidget {
                 child: Text("Delete"),
                 onPressed: () {
                   Navigator.of(context).pop();
-                  accountBloc.deleteAccountAction.add(null);
+                  accountBloc.actionDeleteAccount.add(null);
                 },
               )
             ],
@@ -137,7 +151,7 @@ class AccountScreen extends StatelessWidget {
 
     return ListView(
       shrinkWrap: true,
-      children: widgets,
+      children: widgets.where((widget) => notNull(widget)).toList(),
     );
   }
 
